@@ -25,6 +25,13 @@ export default function Sidebar() {
                 </Link>
 
                 <Link
+                    href="/material"
+                    active={route().current("material")}
+                >
+                    📦 Material
+                </Link>
+
+                <Link
                     href="/customer"
                     className="block px-5 py-3 hover:bg-slate-700"
                 >
@@ -65,12 +72,7 @@ export default function Sidebar() {
                 >
                     ⚙ Setting
                 </Link>
-                <Link
-                    href="/testing"
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-600 hover:text-white"
-                >
-                    🧪 Testing
-                </Link>
+
 
             </nav>
 
