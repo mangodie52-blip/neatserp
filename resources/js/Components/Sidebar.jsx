@@ -5,9 +5,10 @@ export default function Sidebar() {
         <aside className="w-64 bg-slate-800 text-white min-h-screen">
             <div className="p-5 text-center border-b border-slate-700">
                 <img
-                    src="/images/Neatslogo.png"
-                    className="w-16 mx-auto"
+                    src="/images/neatslogos.webp"
                     alt="NEATS ERP"
+                    className="mx-auto"
+                    style={{ width: "80px", height: "80px" }}
                 />
 
                 <h2 className="mt-3 text-xl font-bold">

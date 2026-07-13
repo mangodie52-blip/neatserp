@@ -1,49 +1,50 @@
 import AppLayout from "@/Layouts/AppLayout";
 import ProductionChart from "@/Components/Charts/ProductionChart";
 import FlowChart from "@/Components/Charts/FlowChart";
-import { router } from "@inertiajs/react";
 import RealtimeStatus from "@/Components/RealtimeStatus";
 
-export default function Dashboard({ user }) {
+export default function Dashboard({
+    user,
+    totalMaterial,
+    totalProduction,
+    productionRunning,
+    productionFinished,
+    productionPending,
+    latestProductions,
+    chartData,
+}) {
+
     return (
+
         <AppLayout>
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-xl p-6 text-white">
+
+            {/* Header */}
+
+            <div className="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-xl shadow-lg p-6 text-white">
 
                 <div className="flex justify-between items-center">
 
-                    <div className="flex items-center gap-3">
+                    <div>
 
-                    
+                        <h1 className="text-3xl font-bold">
+                            Selamat Datang, {user.name}
+                        </h1>
 
-                        <div>
+                        <p>{user.role}</p>
 
-                            <h1 className="text-3xl font-bold">
-                                Selamat Datang, {user.name}
-                            </h1>
-
-                            <p className="opacity-90">
-                                {user.role}
-                            </p>
-
-                            <p className="text-sm opacity-80">
-                                Smart Bag Manufacturing ERP
-                            </p>
-
-                        </div>
+                        <p className="opacity-80">
+                            Smart Bag Manufacturing ERP
+                        </p>
 
                     </div>
 
                     <div className="text-right">
 
-                        <h2 className="text-2xl font-bold">
+                        <h2 className="text-3xl font-bold">
                             NEATS ERP
                         </h2>
 
-                        <p className="text-sm">
-                            Dashboard Administrator
-                        </p>
-
-                        <p className="text-sm mt-2">
+                        <p>
                             {new Date().toLocaleDateString("id-ID")}
                         </p>
 
@@ -54,119 +55,159 @@ export default function Dashboard({ user }) {
             </div>
 
 
-            {/* Card Statistik */}
-            <div className="grid grid-cols-12 gap-6 mt-2">
+            {/* Statistik */}
 
-                <div className="col-span-8">
-                    <ProductionChart />
+            <div className="grid grid-cols-5 gap-5 mt-6">
+
+                <Card
+                    title="Total Produksi"
+                    value={totalProduction}
+                    color="bg-blue-600"
+                />
+
+                <Card
+                    title="Total Material"
+                    value={totalMaterial}
+                    color="bg-green-600"
+                />
+
+                <Card
+                    title="Production"
+                    value={productionRunning}
+                    color="bg-yellow-500"
+                />
+
+                <Card
+                    title="Pending"
+                    value={productionPending}
+                    color="bg-orange-500"
+                />
+
+                <Card
+                    title="Finished"
+                    value={productionFinished}
+                    color="bg-red-500"
+                />
+
+            </div>
+
+
+            {/* Chart */}
+            <div className="grid grid-cols-12 gap-1 mt-2">
+
+                {/* Grafik Produksi */}
+                <div className="col-span-8 bg-white rounded-xl shadow p-4">
+
+                    <h2 className="text-lg font-bold mb-4">
+                        Grafik Produksi
+                    </h2>
+
+                    <ProductionChart chartData={chartData} />
+
                 </div>
 
-                <div className="col-span-4">
-                    <FlowChart />
+                {/* Flow Produksi */}
+                <div className="col-span-4 bg-white rounded-xl shadow p-6">
+
+                    <FlowChart
+                        productionRunning={productionRunning}
+                        productionFinished={productionFinished}
+                        productionPending={productionPending}
+                    />
+
                 </div>
 
             </div>
 
+            {/* Produksi Terbaru */}
+            <div className="bg-white rounded-xl shadow mt-6 p-5">
 
-            <div className="grid grid-cols-4 gap-6 mt-6">
+                <h2 className="text-xl font-bold mb-4">
+                    Produksi Terbaru
+                </h2>
 
-                <div className="bg-blue-500 text-white rounded-xl p-5 shadow">
-                    <h3>Total Produksi</h3>
-                    <p className="text-3xl font-bold mt-2">2.540</p>
-                </div>
+                <table className="w-full">
 
-                <div className="bg-green-500 text-white rounded-xl p-5 shadow">
-                    <h3>Barang Masuk</h3>
-                    <p className="text-3xl font-bold mt-2">820</p>
-                </div>
+                    <thead>
 
-                <div className="bg-yellow-500 text-white rounded-xl p-5 shadow">
-                    <h3>Barang Keluar</h3>
-                    <p className="text-3xl font-bold mt-2">780</p>
-                </div>
+                        <tr className="border-b">
 
-                <div className="bg-red-500 text-white rounded-xl p-5 shadow">
-                    <h3>Reject</h3>
-                    <p className="text-3xl font-bold mt-2">18</p>
-                </div>
+                            <th className="text-left p-2">SPK</th>
+                            <th className="text-left p-2">PO</th>
+                            <th className="text-left p-2">Model</th>
+                            <th className="text-left p-2">Line</th>
+                            <th className="text-left p-2">Status</th>
 
-            </div>
-            {/* Bagian bawah */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                        </tr>
 
-                {/* Aktivitas */}
-                <div className="bg-white rounded-xl shadow-md p-5">
-                    <h3 className="text-xl font-bold mb-4">
-                        Aktivitas Hari Ini
-                    </h3>
+                    </thead>
 
-                    <table className="table-auto w-full">
-                        <thead>
-                            <tr className="border-b">
-                                <th className="text-left py-2">Jam</th>
-                                <th className="text-left py-2">Aktivitas</th>
-                            </tr>
-                        </thead>
+                    <tbody>
 
-                        <tbody>
-                            <tr className="border-b">
-                                <td>08:00</td>
-                                <td>Produksi dimulai</td>
-                            </tr>
+                        {latestProductions.map((item) => (
 
-                            <tr className="border-b">
-                                <td>09:30</td>
-                                <td>Barang Masuk</td>
-                            </tr>
+                            <tr key={item.id} className="border-b hover:bg-gray-50">
 
-                            <tr className="border-b">
-                                <td>10:45</td>
-                                <td>QC Selesai</td>
+                                <td className="p-2">{item.spk_no}</td>
+                                <td className="p-2">{item.po_id}</td>
+                                <td className="p-2">{item.model}</td>
+                                <td className="p-2">{item.line}</td>
+
+                                <td className="p-2">
+
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-white text-sm ${item.status === "Finished"
+                                            ? "bg-green-500"
+                                            : item.status === "Production"
+                                                ? "bg-blue-500"
+                                                : "bg-yellow-500"
+                                            }`}
+                                    >
+                                        {item.status}
+                                    </span>
+
+                                </td>
+
                             </tr>
 
-                            <tr>
-                                <td>13:15</td>
-                                <td>Purchasing membuat PO</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                </div>
+                        ))}
 
-                {/* Stok */}
-                <div className="bg-white rounded-xl shadow-md p-5">
-                    <h3 className="text-xl font-bold mb-4">
-                        Stok Hampir Habis
-                    </h3>
+                    </tbody>
 
-                    <ul className="space-y-3">
-                        <li className="flex justify-between">
-                            <span>Kulit Sintetis</span>
-                            <span className="text-red-600 font-bold">
-                                20 pcs
-                            </span>
-                        </li>
-
-                        <li className="flex justify-between">
-                            <span>Benang</span>
-                            <span className="text-red-600 font-bold">
-                                12 Roll
-                            </span>
-                        </li>
-
-                        <li className="flex justify-between">
-                            <span>Resleting</span>
-                            <span className="text-red-600 font-bold">
-                                35 pcs
-                            </span>
-                        </li>
-                    </ul>
-                    <RealtimeStatus />
-                </div>
+                </table>
 
             </div>
 
+            <div className="mt-6">
+                <RealtimeStatus />
+            </div>
 
         </AppLayout>
+
     );
+
+
+
+    function Card({ title, value, color }) {
+
+        return (
+
+            <div className={`${color} rounded-xl p-5 text-white shadow`}>
+
+                <h3 className="text-lg">
+
+                    {title}
+
+                </h3>
+
+                <p className="text-4xl font-bold mt-3">
+
+                    {value}
+
+                </p>
+
+            </div>
+
+        );
+    }
 }

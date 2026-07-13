@@ -6,7 +6,7 @@ export default function GuestLayout({ children }) {
             <div>
                 <Link href="/">
                     <img
-                        src="/images/Neatslogo.png"
+                        src="/images/logoneats.webp"
                         alt="NEATS ERP"
                         className="w-24 h-24 object-contain mx-auto"
                     />

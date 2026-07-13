@@ -16,11 +16,7 @@ export default function Navbar() {
                     className="text-2xl text-gray-600 cursor-pointer"
                 />
 
-                <img
-                    src="/images/Neatslogo.png"
-                    className="w-12"
-                    alt="NEATS"
-                />
+               
 
                 <div>
 
@@ -74,7 +70,7 @@ export default function Navbar() {
                         src={
                             auth.user.photo
                                 ? `/storage/${auth.user.photo}`
-                                : "/images/dodi.jpg"
+                                : "/images/logoneats.webp"
                         }
                         className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
                         alt="User"

@@ -161,7 +161,7 @@ export default function Index({ materials }) {
                                                 onClick={() => editMaterial(item)}
                                                 className="bg-white-500 hover:bg-yellow-200 text-white px-3 py-1 rounded"
                                             >
-                                                ✏️ Edit
+                                                ✏ Edit
                                             </button>
                                             <button
                                                 onClick={() => deleteMaterial(item.id)}

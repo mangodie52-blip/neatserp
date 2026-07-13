@@ -19,28 +19,40 @@ ChartJS.register(
     Legend
 );
 
-export default function ProductionChart() {
+export default function ProductionChart({ chartData = [] }) {
+
+    if (chartData.length === 0) {
+        return (
+            <div className="bg-white rounded-xl shadow-md p-5">
+                <h3 className="text-lg font-bold mb-3">
+                    Progress Produksi
+                </h3>
+
+                <p className="text-gray-500">
+                    Belum ada data produksi.
+                </p>
+            </div>
+        );
+    }
 
     const data = {
-        labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul"],
+        labels: chartData.map(item => item.spk),
 
         datasets: [
             {
-                label: "Jumlah Produksi",
+                label: "Progress Produksi (%)",
 
-                data: [1200, 1800, 1500, 2200, 2600, 2400, 2540],
+                data: chartData.map(item => item.progress),
 
-                backgroundColor: [
-                    "#2563eb",
-                    "#16a34a",
-                    "#f59e0b",
-                    "#ef4444",
-                    "#8b5cf6",
-                    "#06b6d4",
-                    "#ec4899",
-                ],
+                backgroundColor: chartData.map(item =>
+                    item.status === "Finished"
+                        ? "#22c55e"
+                        : item.status === "Production"
+                        ? "#2563eb"
+                        : "#f59e0b"
+                ),
 
-                borderRadius: 8,
+                borderRadius: 3,
                 borderSkipped: false,
                 maxBarThickness: 45,
             },
@@ -48,9 +60,7 @@ export default function ProductionChart() {
     };
 
     const options = {
-
         responsive: true,
-
         maintainAspectRatio: false,
 
         animation: {
@@ -58,110 +68,45 @@ export default function ProductionChart() {
         },
 
         plugins: {
-
             legend: {
-
-                position: "top",
-
-                align: "start",
-
-                labels: {
-                    boxWidth: 18,
-                    padding: 15,
-                },
-
+                display: false,
             },
 
             tooltip: {
-
-                backgroundColor: "#1e293b",
-
-                titleColor: "#fff",
-
-                bodyColor: "#fff",
-
+                callbacks: {
+                    label: function (context) {
+                        return "Progress : " + context.raw + "%";
+                    },
+                },
             },
-
-        },
-
-        layout: {
-
-            padding: {
-
-                top: 5,
-
-                bottom: 5,
-
-                left: 5,
-
-                right: 5,
-
-            },
-
         },
 
         scales: {
-
-            x: {
-
-                grid: {
-                    display: false,
-                },
-
-                ticks: {
-                    color: "#374151",
-                },
-
-            },
-
             y: {
-
                 beginAtZero: true,
+                max: 100,
 
                 ticks: {
-
-                    stepSize: 500,
-
-                    color: "#6b7280",
-
+                    callback: (value) => value + "%",
                 },
-
-                grid: {
-
-                    color: "#e5e7eb",
-
-                },
-
             },
-
         },
-
     };
 
     return (
-
         <div className="bg-white rounded-xl shadow-md p-5">
 
-            <h3 className="text-lg font-bold mb-2">
-
-                Grafik Produksi
-
+            <h3 className="text-lg font-bold mb-3">
+                Progress Produksi
             </h3>
 
-            <div className="h-72">
-
+            <div className="h-80">
                 <Bar
-
                     data={data}
-
                     options={options}
-
                 />
-
             </div>
 
         </div>
-
     );
-
 }

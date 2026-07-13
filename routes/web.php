@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\ProductionController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -11,25 +13,13 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/dashboard', function () {
-
-        return Inertia::render('Dashboard', [
-            'user' => Auth::user()
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
 
     Route::resource('material', MaterialController::class);
 
+    Route::resource('produksi', ProductionController::class);
 
-
-    Route::middleware('auth')->group(function () {
-
-        Route::get('/material', [MaterialController::class, 'index'])
-            ->name('material');
-
-        Route::post('/material', [MaterialController::class, 'store'])
-            ->name('material.store');
-    });
 });
 
 
@@ -41,12 +31,6 @@ Route::middleware(['auth'])->group(function () {
     })->name('profile');
 });
 
-Route::middleware(['auth'])->group(function () {
-
-    Route::get('/testing', function () {
-        return Inertia::render('testing/Index');
-    })->name('testing');
-});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

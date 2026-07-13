@@ -29,7 +29,7 @@ class MaterialController extends Controller
 
         Material::create($validated);
 
-        return redirect()->route('material');
+       return redirect()->route('material.index');
     }
 
     public function update(Request $request, Material $material)
