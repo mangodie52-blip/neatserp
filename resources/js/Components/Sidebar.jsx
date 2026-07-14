@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 
+
 export default function Sidebar() {
     return (
         <aside className="w-64 bg-slate-800 text-white min-h-screen">
@@ -18,65 +19,37 @@ export default function Sidebar() {
 
             <nav className="mt-5">
 
-                <Link
-                    href="/dashboard"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    🏠 Dashboard
-                </Link>
+                <nav className="mt-5">
 
-                <Link
-                    href="/material"
-                    active={route().current("material")}
-                >
-                    📦 Material
-                </Link>
+                    <Link href="/dashboard" className="block px-5 py-3 hover:bg-slate-700">
+                        🏠 Dashboard
+                    </Link>
 
-                <Link
-                    href="/customer"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    👥 Customer
-                </Link>
+                    <Link href="/products" className="block px-5 py-3 hover:bg-slate-700">
+                        👜 Master Products
+                    </Link>
 
-                <Link
-                    href="/produk"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    📦 Produk
-                </Link>
+                    <Link href="/bom" className="block px-5 py-3 hover:bg-slate-700">
+                        📋 Master BOM
+                    </Link>
 
-                <Link
-                    href="/produksi"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    🏭 Produksi
-                </Link>
+                    <Link href="/material" className="block px-5 py-3 hover:bg-slate-700">
+                        📦 Master Material
+                    </Link>
 
-                <Link
-                    href="/gudang"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    📦 Gudang
-                </Link>
+                    <Link href="/produksi" className="block px-5 py-3 hover:bg-slate-700">
+                        🏭 Produksi
+                    </Link>
 
-                <Link
-                    href="/laporan"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    📊 Laporan
-                </Link>
+                </nav>
 
-                <Link
-                    href="/setting"
-                    className="block px-5 py-3 hover:bg-slate-700"
-                >
-                    ⚙ Setting
-                </Link>
+
+
 
 
             </nav>
 
         </aside>
     );
+
 }

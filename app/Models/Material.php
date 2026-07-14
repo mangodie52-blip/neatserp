@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+
 class Material extends Model
 {
     protected $fillable = [
@@ -15,4 +16,13 @@ class Material extends Model
         'stok_minimum',
         'harga',
     ];
-}
+    public function boms()
+    {
+        return $this->hasMany(Bom::class);
+    }
+
+    }
+
+    
+
+

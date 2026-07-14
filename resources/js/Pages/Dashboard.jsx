@@ -68,19 +68,19 @@ export default function Dashboard({
                 <Card
                     title="Total Material"
                     value={totalMaterial}
-                    color="bg-green-600"
+                    color="bg-purple-500"
                 />
 
                 <Card
                     title="Production"
                     value={productionRunning}
-                    color="bg-yellow-500"
+                    color="bg-green-500"
                 />
 
                 <Card
                     title="Pending"
                     value={productionPending}
-                    color="bg-orange-500"
+                    color="bg-yellow-500"
                 />
 
                 <Card
@@ -157,9 +157,9 @@ export default function Dashboard({
 
                                     <span
                                         className={`px-3 py-1 rounded-full text-white text-sm ${item.status === "Finished"
-                                            ? "bg-green-500"
+                                            ? "bg-red-500"
                                             : item.status === "Production"
-                                                ? "bg-blue-500"
+                                                ? "bg-green-500"
                                                 : "bg-yellow-500"
                                             }`}
                                     >
