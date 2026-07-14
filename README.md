@@ -1,63 +1,99 @@
-Cara membuka project NEATS ERP yang sudah ada di GitHub, langkahnya seperti ini.
+CARA INSTALL PROJECT NEATS DI PC ATAU LAPTOP
 
-1. Clone repository
 
-Buka CMD atau PowerShell, lalu masuk ke folder tempat Anda ingin menyimpan project, misalnya:
+1. Install kebutuhan dulu di PC baru
 
-cd C:\Users\Noedo
+Pastikan ada:
 
-Kemudian jalankan:
+✅ PHP 8.2
+✅ Composer
+✅ Node.js + npm
+✅ MySQL (atau XAMPP)
+✅ Git
 
-git clone https://github.com/USERNAME/NAMA-REPOSITORY.git
+Cek di command Promp:
 
-Ganti USERNAME/NAMA-REPOSITORY dengan URL repository Anda. Cloning akan membuat salinan project ke komputer Anda.
+php -v
+composer -V
+node -v
+npm -v
+git --version
 
-2. Masuk ke folder project
+2. Clone project dari GitHub
 
-Contoh:
-
+Buka Git Bash (MinGW64):
+Masuk ke folder kerja:
+cd C:/Users/NAMA
+Clone:
+git clone https://github.com/mangodie52-blip/neatserp.git
+Masuk folder:
 cd neatserp
 
-atau
+3. Install library Laravel
+Jalankan:
+composer install
 
-cd neatsbeam
+Ini akan membuat folder:
+vendor/
 
-sesuai nama folder hasil clone.
+4. Install library React
+Jalankan:
+npm install
+Ini membuat:
+node_modules/
 
-3. Install dependency
-   composer install
-   npm install
-4. Buat file .env
-   copy .env.example .env
-5. Generate application key
-   php artisan key:generate
+5. Buat file .env
+
+Karena .env tidak masuk GitHub (dan memang harus begitu), buat dari contoh:
+cp .env.example .env
+Windows Git Bash juga bisa.
+
 6. Atur database
 
-Edit file .env:
+Buat database baru di MySQL/phpMyAdmin:
+Contoh:
+
+neatserp
+
+Lalu edit:
+
+.env
+Bagian ini:
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=neatsbeam
+DB_DATABASE=neatserp
 DB_USERNAME=root
 DB_PASSWORD=
 
-7. Jalankan migration
-   php artisan migrate
+Sesuaikan password MySQL PC tersebut.
 
-   Jika ada data awal (seed):
+7. Generate key Laravel
+php artisan key:generate
 
-   php artisan db:seed
-8. Jalankan aplikasi
+8. Buat tabel database
 
-   Terminal pertama:
+Karena kita pakai migration:
+php artisan migrate
+Nanti tabel:
+users
+materials
+products
+boms
+dll
+otomatis muncul.
 
-   php artisan serve
+9. Jalankan aplikasi
 
-   Terminal kedua:
+Terminal 1:
+php artisan serve
+Hasil:
+http://127.0.0.1:8000
 
-   npm run dev
+Terminal 2:
+npm run dev
 
-Lalu buka:
-
+10. Login
+Buka:
 http://127.0.0.1:8000
