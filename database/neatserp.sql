@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 13, 2026 at 02:55 PM
+-- Generation Time: Jul 14, 2026 at 03:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -120,10 +120,7 @@ CREATE TABLE `materials` (
 --
 
 INSERT INTO `materials` (`id`, `kode`, `nama`, `kategori`, `satuan`, `stok`, `stok_minimum`, `harga`, `created_at`, `updated_at`) VALUES
-(1, '891', 'sleting', 'accessoris', 'Roll', 100.00, 50.00, 5000.00, '2026-07-13 01:39:23', '2026-07-13 01:42:19'),
-(2, 'BRX1', 'WEBING', 'ACCESORIES', 'Roll', 5.00, 4.00, 20000.00, '2026-07-13 04:20:25', '2026-07-13 04:20:25'),
-(3, 'BHN', 'CONDURA', 'BAHAN BAKU', 'Roll', 10.00, 8.00, 500000.00, '2026-07-13 04:23:31', '2026-07-13 04:23:31'),
-(4, '4546', 'kancing', 'aksesories', 'PCS', 10.00, 8.00, 1000000.00, '2026-07-13 04:48:43', '2026-07-13 04:48:43');
+(1, 'CDR 01', 'CODORA', 'BAHAN UTAMA', 'Roll', 10.00, 3.00, 500000.00, '2026-07-14 04:09:08', '2026-07-14 04:09:27');
 
 -- --------------------------------------------------------
 
@@ -146,7 +143,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (2, '0001_01_01_000001_create_cache_table', 1),
 (3, '0001_01_01_000002_create_jobs_table', 1),
 (4, '2026_07_11_092339_create_materials_table', 1),
-(5, '2026_07_13_004422_create_productions_table', 1);
+(5, '2026_07_13_004422_create_productions_table', 1),
+(6, '2026_07_13_230000_create_products_table', 1),
+(7, '2026_07_13_230840_create_boms_table', 1);
 
 -- --------------------------------------------------------
 
@@ -180,7 +179,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('JXZRUlNcY4Wvb2zKyAiuXnJkQrRiNu7cgfGKkfpo', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoiSWczYUFYVUc3SnFXNnJUODFhZHZ4SW11UEtONHdsT255MWI4U0NXYSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1783946408);
+('8ikiivUP1a8LCdXfA3Q0jZRcBODQLhf3dY48wXCs', 1, '127.0.0.1', 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiU0VjeHVTRHo5NmZOMEg2STZzamRjeG95V2JXVEoxcHRkQ3BBZTdERiI7czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czozMToiaHR0cDovLzEyNy4wLjAuMTo4MDAwL2Rhc2hib2FyZCI7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjMxOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvZGFzaGJvYXJkIjtzOjU6InJvdXRlIjtzOjk6ImRhc2hib2FyZCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7fQ==', 1784032950);
 
 -- --------------------------------------------------------
 
@@ -206,7 +205,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`, `photo`, `role`) VALUES
-(1, 'Mang Odie', 'mangodie52@gmail.com', NULL, '$2y$12$vLrWsyMS9lrFzEzYWdcaO.2inCp3wZlLDs.GLiiXlq1hUqVP0PoK.', NULL, '2026-07-12 22:49:02', '2026-07-12 22:49:02', NULL, 'User');
+(1, 'odi', 'mangodie52@gmail.com', NULL, '$2y$12$C1psQ1KYdMH2yDx46nyS3OtWBJtFaEvnzg/CsllIfcODditfdaI9m', NULL, '2026-07-14 04:07:27', '2026-07-14 04:07:27', NULL, 'User');
 
 --
 -- Indexes for dumped tables
@@ -300,13 +299,13 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `materials`
 --
 ALTER TABLE `materials`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`

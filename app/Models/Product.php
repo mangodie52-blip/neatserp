@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Bom;
 
 class Product extends Model
 {
@@ -15,4 +16,9 @@ class Product extends Model
         'kategori',
         'keterangan',
     ];
+
+    public function boms()
+{
+    return $this->hasMany(Bom::class);
+}
 }

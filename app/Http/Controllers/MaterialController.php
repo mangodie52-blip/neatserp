@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\MaterialRequest;
 
 class MaterialController extends Controller
 {
@@ -29,7 +30,7 @@ class MaterialController extends Controller
 
         Material::create($validated);
 
-       return redirect()->route('material.index');
+        return redirect()->route('material.index');
     }
 
     public function update(Request $request, Material $material)
@@ -45,4 +46,6 @@ class MaterialController extends Controller
 
         return back();
     }
+
+  
 }

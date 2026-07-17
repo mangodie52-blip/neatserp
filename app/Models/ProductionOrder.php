@@ -4,23 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Bom extends Model
+class ProductionOrder extends Model
 {
+
     protected $fillable = [
+        'nomor_spk',
         'product_id',
-        'material_id',
-        'kebutuhan',
-        'satuan',
-        'waste',
+        'qty',
+        'tanggal',
+        'status',
     ];
+
 
     public function product()
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function material()
-    {
-        return $this->belongsTo(Material::class);
     }
 }

@@ -217,19 +217,17 @@ export default function Index({ productions }) {
                                         <td className="p-3 text-center">
 
                                             <button
-                                                onClick={() => editProduction(item)}
-                                                className="text-blue-600 hover:text-blue-800 mr-3"
+                                                onClick={() => editMaterial(item)}
+                                                className="hover:bg-yellow-600 text-black px-3 py-1 rounded"
                                             >
-                                                ✏ Edit
+                                                Edit
                                             </button>
-
                                             <button
-                                                onClick={() => deleteProduction(item.id)}
-                                                className="text-red-600 hover:text-red-800"
+                                                onClick={() => deleteMaterial(item.id)}
+                                                className="hover:bg-red-600 text-black px-3 py-1 rounded"
                                             >
-                                                🗑 Hapus
+                                                Hapus
                                             </button>
-
                                         </td>
 
                                     </tr>

@@ -6,7 +6,6 @@ use App\Models\Bom;
 use App\Models\Product;
 use App\Models\Material;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class BomController extends Controller
@@ -14,12 +13,9 @@ class BomController extends Controller
     public function index()
     {
         return Inertia::render('Master/Bom/Index', [
-            'boms' => Bom::with([
-                'product',
-                'material'
-            ])
-            ->latest()
-            ->get(),
+            'boms' => Bom::with(['product', 'material'])
+                ->latest()
+                ->get(),
 
             'products' => Product::latest()->get(),
 
@@ -27,75 +23,47 @@ class BomController extends Controller
         ]);
     }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'product_id' => [
-                'required',
-                'exists:products,id'
-            ],
-
-            'material_id' => [
-                'required',
-                'exists:materials,id'
-            ],
-
-            'qty_per_pcs' => [
-                'required',
-                'numeric',
-                'min:0'
-            ],
-
-            'waste' => [
-                'nullable',
-                'numeric',
-                'min:0'
-            ],
+            'product_id'  => 'required|exists:products,id',
+            'material_id' => 'required|exists:materials,id',
+            'kebutuhan'   => 'required|numeric|min:0',
+            'satuan'      => 'required|string|max:20',
+            'waste'       => 'nullable|integer|min:0',
         ]);
 
-
-        // Cegah BOM double
-        $exists = Bom::where('product_id', $request->product_id)
-            ->where('material_id', $request->material_id)
+        $exists = Bom::where('product_id', $validated['product_id'])
+            ->where('material_id', $validated['material_id'])
             ->exists();
 
-
         if ($exists) {
-
-            return redirect()
-                ->back()
-                ->with('error', 'Material sudah ada di BOM Product ini');
-
+            return back()->with('error', 'Material sudah ada pada Product ini.');
         }
 
-
         Bom::create([
-
-            'product_id' => $validated['product_id'],
-
+            'product_id'  => $validated['product_id'],
             'material_id' => $validated['material_id'],
-
-            'qty_per_pcs' => $validated['qty_per_pcs'],
-
-            'waste' => $validated['waste'] ?? 0,
-
+            'kebutuhan'   => $validated['kebutuhan'],
+            'satuan'      => $validated['satuan'],
+            'waste'       => $validated['waste'] ?? 0,
         ]);
-
-
-        return redirect()
-            ->back()
-            ->with('success', 'BOM berhasil disimpan');
+        return back()->with('success', 'BOM berhasil disimpan.');
     }
-
 
     public function destroy(Bom $bom)
     {
         $bom->delete();
 
+        return back()->with('success', 'BOM berhasil dihapus.');
+    }
 
-        return redirect()
-            ->back()
-            ->with('success', 'BOM berhasil dihapus');
+    public function generate(Product $product)
+    {
+        $product->load('boms.material');
+
+        return Inertia::render('Master/Bom/Generate', [
+            'product' => $product,
+        ]);
     }
 }

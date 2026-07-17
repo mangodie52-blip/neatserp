@@ -159,15 +159,15 @@ export default function Index({ materials }) {
                                         <td className="p-3 text-center">
                                             <button
                                                 onClick={() => editMaterial(item)}
-                                                className="bg-white-500 hover:bg-yellow-200 text-white px-3 py-1 rounded"
+                                                className="hover:bg-yellow-600 text-black px-3 py-1 rounded"
                                             >
-                                                ✏ Edit
+                                                 Edit
                                             </button>
                                             <button
                                                 onClick={() => deleteMaterial(item.id)}
-                                                className="bg-white-500 hover:bg-red-700 text-white px-3 py-1 rounded"
+                                                className="hover:bg-red-600 text-black px-3 py-1 rounded"
                                             >
-                                                🗑 Hapus
+                                                 Hapus
                                             </button>
                                         </td>
 

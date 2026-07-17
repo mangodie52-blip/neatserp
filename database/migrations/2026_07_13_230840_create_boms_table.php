@@ -20,9 +20,8 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->decimal('qty_per_pcs', 10, 3);
-
-            $table->decimal('waste', 5, 2)->default(0);
+            $table->integer('satuan');
+            $table->integer('waste')->default(0);
 
             $table->timestamps();
         });

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProductionOrder;
 
 class Production extends Model
 {
@@ -17,4 +18,9 @@ class Production extends Model
         'deadline',
         'status',
     ];
+
+    public function productionOrders()
+    {
+        return $this->hasMany(ProductionOrder::class);
+    }
 }

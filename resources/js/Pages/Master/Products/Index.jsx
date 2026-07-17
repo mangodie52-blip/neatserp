@@ -1,16 +1,17 @@
 import React, { useState } from "react";
-import { router, usePage } from "@inertiajs/react";
+import { router, usePage, Link } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
-import { Link } from "@inertiajs/react";
-
 
 export default function Index() {
 
     const { products } = usePage().props;
 
+    // ===========================
+    // STATE
+    // ===========================
+
     const [showModal, setShowModal] = useState(false);
-    const [editMode, setEditMode] = useState(false);
-    const [selectedId, setSelectedId] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const [data, setData] = useState({
         kode: "",
@@ -22,6 +23,20 @@ export default function Index() {
         keterangan: "",
     });
 
+    const [editData, setEditData] = useState({
+        id: "",
+        kode: "",
+        nama: "",
+        customer: "",
+        warna: "",
+        ukuran: "",
+        kategori: "",
+        keterangan: "",
+    });
+
+    // ===========================
+    // RESET FORM
+    // ===========================
 
     const resetForm = () => {
         setData({
@@ -33,61 +48,92 @@ export default function Index() {
             kategori: "",
             keterangan: "",
         });
-
-        setEditMode(false);
-
-        setSelectedId(null);
     };
 
+    // ===========================
+    // TAMBAH PRODUCT
+    // ===========================
 
     const submit = (e) => {
+
         e.preventDefault();
 
-        if (editMode) {
+        router.post(
+            route("products.store"),
+            data,
+            {
+                preserveScroll: true,
 
-            router.put(
-                route("products.update", selectedId),
-                data,
-                {
-                    onSuccess: () => {
-                        setShowModal(false);
-                        resetForm();
-                    }
-                }
-            );
+                onSuccess: () => {
+                    setShowModal(false);
+                    resetForm();
+                },
+            }
+        );
 
-        } else {
-
-            router.post(
-                route("products.store"),
-                data,
-                {
-                    onSuccess: () => {
-                        setShowModal(false);
-                        resetForm();
-                    }
-                }
-            );
-
-        }
     };
 
+    // ===========================
+    // BUKA MODAL EDIT
+    // ===========================
 
-    const editProduct = (products) => {
-        router.get(route("products.edit", products.id));
+    const openEdit = (product) => {
+
+        setEditData({
+            id: product.id,
+            kode: product.kode,
+            nama: product.nama,
+            customer: product.customer,
+            warna: product.warna,
+            ukuran: product.ukuran,
+            kategori: product.kategori,
+            keterangan: product.keterangan,
+        });
+
+        setShowEditModal(true);
+
     };
 
+    // ===========================
+    // UPDATE PRODUCT
+    // ===========================
+
+    const updateProduct = (e) => {
+
+        e.preventDefault();
+
+        router.put(
+            route("products.update", editData.id),
+            editData,
+            {
+                preserveScroll: true,
+
+                onSuccess: () => {
+                    setShowEditModal(false);
+                },
+            }
+        );
+
+    };
+
+    // ===========================
+    // HAPUS PRODUCT
+    // ===========================
 
     const deleteProduct = (id) => {
 
         if (confirm("Yakin hapus product?")) {
 
-            router.delete(`/products/${id}`, {
+            router.delete(route("products.destroy", id), {
+                preserveScroll: true,
+
                 onSuccess: () => {
-                    console.log("deleted");
-                }
+                    console.log("Product berhasil dihapus");
+                },
             });
+
         }
+
     };
 
     return (
@@ -177,17 +223,24 @@ export default function Index() {
                                         <td className="px-1 py-3 flex gap-1">
 
 
-
+                                            <button
+                                                onClick={() => openEdit(product)}
+                                                className="hover:bg-yellow-600 text-black px-3 py-1 rounded"
+                                            >
+                                                Edit
+                                            </button>
 
 
                                             <button onClick={() => deleteProduct(product.id)}
-                                                className="bg-yellow-600 text-white px-2 py-1 rounded">
+                                                className="hover:bg-red-600 text-black px-3 py-1 rounded"
+                                            >
                                                 Hapus
                                             </button>
 
+
                                             <Link
-                                                href={route("bom.index")}
-                                                className="bg-blue-600 text-white px-2 py-1 rounded"
+                                                href={route("boms.index")}
+                                                className="hover:bg-blue-600 text-black px-2 py-1 rounded"
                                             >
                                                 BOM
                                             </Link>
