@@ -20,9 +20,4 @@ class Material extends Model
     {
         return $this->hasMany(Bom::class);
     }
-
-    }
-
-    
-
-
+}

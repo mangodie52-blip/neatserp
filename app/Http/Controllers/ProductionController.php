@@ -15,7 +15,7 @@ class ProductionController extends Controller
     public function index()
     {
 
-        $productions = Production::latest()->get();
+        $productions = ProductionOrder::orderBy('created_at')->with('product')->get();
 
 
         return Inertia::render('Produksi/Index', [
@@ -40,7 +40,7 @@ class ProductionController extends Controller
 
             'po_id' => 'required|string|max:100',
 
-            'po_date' => 'nullable|date',   
+            'po_date' => 'nullable|date',
 
             'model' => 'required|string|max:100',
 
@@ -74,25 +74,26 @@ class ProductionController extends Controller
      * Update data produksi
      */
     public function update(Request $request, $id)
-{
-    $validated = $request->validate([
-        'spk_no' => 'required|string|max:50',
-        'po_id' => 'required|string|max:100',
-        'po_date' => 'nullable|date',
-        'model' => 'required|string|max:100',
-        'line' => 'required|string|max:50',
-        'qty_awal' => 'required|integer|min:0',
-        'qty_akhir' => 'nullable|integer|min:0',
-        'deadline' => 'required|date',
-        'status' => 'required|string',
-    ]);
+    {
+        $validated = $request->validate([
+            'spk_no' => 'required|string|max:50',
+            'po_id' => 'required|string|max:100',
+            'po_date' => 'nullable|date',
+            'model' => 'required|string|max:100',
+            'line' => 'required|string|max:50',
+            'qty_awal' => 'required|integer|min:0',
+            'qty_akhir' => 'nullable|integer|min:0',
+            'deadline' => 'required|date',
+            'status' => 'required|string',
+        ]);
 
-    $production = Production::findOrFail($id);
+       
+        
 
-    $production->update($validated);
+        $production->update($validated);
 
-    return redirect()->route('produksi.index');
-}
+        return redirect()->route('produksi.index');
+    }
 
 
 
@@ -101,12 +102,12 @@ class ProductionController extends Controller
     /**
      * Hapus produksi
      */
-   public function destroy($id)
-{
-    $production = Production::findOrFail($id);
+    public function destroy($id)
+    {
+        $production = Production::findOrFail($id);
 
-    $production->delete();
+        $production->delete();
 
-    return redirect()->route('produksi.index');
-}
+        return redirect()->route('produksi.index');
+    }
 }

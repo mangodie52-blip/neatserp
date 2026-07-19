@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MaterialController;
-use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BomController;
 use App\Http\Controllers\ProductController;
@@ -11,6 +10,13 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProductionOrderController;
 use App\Http\Controllers\GudangController;
 use App\Http\Controllers\MaterialRequestController;
+use App\Http\Controllers\OperationCenterController;
+
+
+Route::get('/', function () {
+    return redirect('/login');
+});
+
 
 
 
@@ -63,9 +69,21 @@ Route::middleware(['auth'])->group(function () {
         [ProductionOrderController::class, 'calculateBom']
     )->name('production-orders.calculate-bom');
 
+
+    // Operation Center
+    Route::get(
+        '/operation-center',
+        [OperationCenterController::class, 'index']
+    )->name('operation.center');
+
     // Gudang
     Route::resource('gudang', GudangController::class);
 
+    // Print
+    Route::get(
+        'material-requests/{materialRequest}/print',
+        [MaterialRequestController::class, 'print']
+    )->name('material-requests.print');
 
     // Logout
     Route::post('/logout', function () {
@@ -88,7 +106,7 @@ Route::middleware(['auth'])->group(function () {
         '/material-requests/{materialRequest}/approve',
         [MaterialRequestController::class, 'approve']
     )->name('material-requests.approve');
-});
 
+});
 
 require __DIR__ . '/auth.php';

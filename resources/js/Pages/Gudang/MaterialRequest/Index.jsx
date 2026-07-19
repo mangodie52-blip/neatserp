@@ -2,6 +2,8 @@ import { Link } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 
 
+
+
 export default function Index({ requests }) {
     return (
 
@@ -18,30 +20,29 @@ export default function Index({ requests }) {
 
                     <table className="w-full table-fixed border-collapse">
 
-                        <thead>
+                        <thead className="bg-gray-100">
 
-                            <tr className="bg-gray-100 border-b">
+                            <tr>
 
-
-                                <th className="w-1/4 p-3 text-left">
+                                <th className="border p-3 text-left">
                                     No MR
                                 </th>
 
-
-                                <th className="w-1/4 p-3 text-center">
-                                    Tanggal
+                                <th className="border p-3 text-center">
+                                    Tanggal Kirim
                                 </th>
 
+                                <th className="border p-3 text-center">
+                                    Jam Kirim
+                                </th>
 
-                                <th className="w-1/4 p-3 text-center">
+                                <th className="border p-3 text-center">
                                     Status
                                 </th>
 
-
-                                <th className="w-1/4 p-3 text-center">
+                                <th className="border p-3 text-center">
                                     Action
                                 </th>
-
 
                             </tr>
 
@@ -57,37 +58,52 @@ export default function Index({ requests }) {
                                     className="border-b hover:bg-gray-50"
                                 >
 
-
                                     <td className="p-3 text-left">
                                         {mr.nomor_mr}
                                     </td>
 
-
                                     <td className="p-3 text-center">
-                                        {mr.tanggal}
+                                        {new Date(mr.created_at).toLocaleDateString("id-ID")}
                                     </td>
 
-
                                     <td className="p-3 text-center">
-                                        {mr.status}
+                                        {new Date(mr.created_at).toLocaleTimeString("id-ID", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
                                     </td>
 
+                                    <td className="p-3 text-center">
+
+                                        {mr.status === "Approved" ? (
+
+                                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                ✅ Approved
+                                            </span>
+
+                                        ) : (
+
+                                            <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                ⏳ Waiting Approval
+                                            </span>
+
+                                        )}
+
+                                    </td>
 
                                     <td className="p-3 text-center">
 
                                         <Link
                                             href={route(
-                                                'material-requests.show',
+                                                "material-requests.show",
                                                 mr.id
                                             )}
-
-                                            className="hover:bg-blue-600 text-black px-3 py-1 rounded"
+                                            className="bg-white-500  hover:bg-blue-700 text-black px-5 py-2 rounded"
                                         >
                                             Detail
                                         </Link>
 
                                     </td>
-
 
                                 </tr>
 

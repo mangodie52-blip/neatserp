@@ -3,6 +3,31 @@ import { router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 
 
+const approve = (id) => {
+
+    if (!confirm(
+        "Approve Material Request?\n\nStok gudang akan langsung berkurang."
+    )) {
+        return;
+    }
+
+    router.post(
+        route("material-requests.approve", id),
+        {},
+        {
+            onSuccess: () => {
+
+                alert(
+                    "✅ Material Request berhasil di-approve."
+                );
+
+            },
+        }
+    );
+
+};
+
+
 export default function Detail({ mr }) {
     return (
 
@@ -80,7 +105,7 @@ export default function Detail({ mr }) {
 
                                     <td className="border text-center">
 
-                                       {Number(item.qty_request).toLocaleString()}
+                                        {Number(item.qty_request).toLocaleString()}
 
                                     </td>
 
@@ -94,7 +119,7 @@ export default function Detail({ mr }) {
 
                                     <td className="border text-center">
 
-                                       {Number(item.qty_approved ?? 0).toLocaleString()}
+                                        {Number(item.qty_approved ?? 0).toLocaleString()}
 
                                     </td>
 
@@ -133,28 +158,16 @@ export default function Detail({ mr }) {
                     <div className="mt-5 flex gap-3">
 
 
-                        <button
+                        {mr.status === "Waiting Approval" && (
 
-                            onClick={() =>
+                            <button
+                                onClick={() => approve(mr.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded transition"
+                            >
+                                Approve
+                            </button>
 
-                                router.post(
-                                    route(
-                                        'material-requests.approve',
-                                        mr.id
-                                    )
-
-                                )
-
-                            }
-
-                            className="bg-green-600 text-white px-5 py-2 rounded"
-
-                        >
-
-                            Approve
-
-                        </button>
-
+                        )}
 
                         <button
                             className="bg-red-600 text-white px-5 py-2 rounded"
@@ -163,6 +176,15 @@ export default function Detail({ mr }) {
                             Reject
 
                         </button>
+
+
+                        <a
+                            href={route("material-requests.print", mr.id)}
+                            target="_blank"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
+                        >
+                            🖨 Print
+                        </a>
 
 
                         <Link

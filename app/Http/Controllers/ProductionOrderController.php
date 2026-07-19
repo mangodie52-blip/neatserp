@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Operation;
+use App\Models\ProductionOperation;
 use App\Models\Product;
 use App\Models\ProductionOrder;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Helpers\ActivityHelper;
+
+
 
 class ProductionOrderController extends Controller
 {
@@ -30,22 +35,55 @@ class ProductionOrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+
             'nomor_spk' => 'required|unique:production_orders,nomor_spk',
+
             'product_id' => 'required|exists:products,id',
+
             'qty' => 'required|numeric|min:1',
+
             'tanggal' => 'required|date',
+
         ]);
 
-        ProductionOrder::create([
+        // buat SPK
+        $productionOrder = ProductionOrder::create([
+
             'nomor_spk' => $request->nomor_spk,
+
             'product_id' => $request->product_id,
+
             'qty' => $request->qty,
+
             'tanggal' => $request->tanggal,
+
             'status' => 'Draft',
+
         ]);
 
-        return redirect()->back()->with('success', 'SPK berhasil ditambahkan.');
+        // simpan activity log (jangan sampai bikin gagal simpan SPK)
+        try {
+
+            ActivityHelper::log(
+                'Produksi',
+                'CREATE',
+                'SPK dibuat: ' . $productionOrder->nomor_spk,
+                'ProductionOrder',
+                $productionOrder->id
+            );
+        } catch (\Throwable $e) {
+
+            \Log::error('Activity log gagal: ' . $e->getMessage());
+        }
+
+        return redirect()
+            ->route('production-orders.index')
+            ->with('success', 'SPK berhasil dibuat.');
     }
+
+
+
+
 
     /**
      * Update SPK
@@ -88,53 +126,53 @@ class ProductionOrderController extends Controller
     /**
      * Lihat BOM SPK
      */
-   public function calculateBom($id)
-{
-    $productionOrder = ProductionOrder::with([
-        'product.boms.material'
-    ])->findOrFail($id);
+    public function calculateBom($id)
+    {
+        $productionOrder = ProductionOrder::with([
+            'product.boms.material'
+        ])->findOrFail($id);
 
 
-    $qtyProduksi = $productionOrder->qty;
+        $qtyProduksi = $productionOrder->qty;
 
 
-    $materials = [];
+        $materials = [];
 
 
-    foreach ($productionOrder->product->boms as $bom) {
+        foreach ($productionOrder->product->boms as $bom) {
 
-        $kebutuhan = 
-            $bom->qty_per_pcs * $qtyProduksi;
-
-
-        $waste = 
-            $kebutuhan * ($bom->waste / 100);
+            $kebutuhan =
+                $bom->qty_per_pcs * $qtyProduksi;
 
 
-        $total = 
-            $kebutuhan + $waste;
+            $waste =
+                $kebutuhan * ($bom->waste / 100);
 
 
-        $materials[] = [
+            $total =
+                $kebutuhan + $waste;
 
-            'material_id' => $bom->material_id,
 
-            'nama_material' =>
+            $materials[] = [
+
+                'material_id' => $bom->material_id,
+
+                'nama_material' =>
                 $bom->material->nama,
 
-            'qty' => $total,
+                'qty' => $total,
 
-            'satuan' =>
+                'satuan' =>
                 $bom->material->satuan
-        ];
+            ];
+        }
+
+
+        return response()->json([
+            'spk' => $productionOrder->nomor_spk,
+            'product' => $productionOrder->product->nama,
+            'qty_produksi' => $qtyProduksi,
+            'materials' => $materials
+        ]);
     }
-
-
-    return response()->json([
-        'spk' => $productionOrder->nomor_spk,
-        'product' => $productionOrder->product->nama,
-        'qty_produksi' => $qtyProduksi,
-        'materials' => $materials
-    ]);
-}
 }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Material;
 use App\Models\Production;
 use Inertia\Inertia;
+use App\Models\ActivityLog;
+use App\Models\ProductionOrder;
 
 class DashboardController extends Controller
 {
@@ -36,17 +38,34 @@ class DashboardController extends Controller
 
             'totalMaterial' => Material::count(),
 
-            'totalProduction' => Production::count(),
 
-            'productionRunning' => Production::where('status', 'Production')->count(),
+            'totalProduction' => ProductionOrder::count(),
 
-            'productionFinished' => Production::where('status', 'Finished')->count(),
 
-            'productionPending' => Production::where('status', 'Pending')->count(),
+            'productionRunning' => ProductionOrder::where('status', 'Running')
+                ->count(),
 
-            'latestProductions' => Production::latest()->take(5)->get(),
 
-            // Data grafik
+            'productionFinished' => ProductionOrder::where('status', 'Finished')
+                ->count(),
+
+
+            'productionPending' => ProductionOrder::where('status', 'Draft')
+                ->count(),
+
+
+            'latestProductions' => ProductionOrder::with('product')
+                ->latest()
+                ->take(5)
+                ->get(),
+
+
+            'activities' => ActivityLog::with('user')
+                ->latest()
+                ->take(10)
+                ->get(),
+
+
             'chartData' => $chartData,
 
         ]);

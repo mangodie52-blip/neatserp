@@ -8,7 +8,7 @@ class BomCalculator
      * Menghitung kebutuhan material.
      */
 public function calculate(Request $request)
-{
+
     $request->validate([
         'product_id'    => 'required|exists:products,id',
         'qty_produksi'  => 'required|numeric|min:1',

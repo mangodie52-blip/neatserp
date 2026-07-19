@@ -13,11 +13,21 @@ class ProductionOrder extends Model
         'qty',
         'tanggal',
         'status',
+        'user_id',
+        'activity',
+        'description',
     ];
 
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function productionOperations()
+    {
+        return $this->hasMany(
+            ProductionOperation::class
+        );
     }
 }

@@ -8,9 +8,12 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use App\Models\MaterialRequestDetail;
 use App\Models\Material;
+use App\Models\ActivityLog;
 
 class MaterialRequestController extends Controller
 {
+
+
     public function index()
     {
         $mrs = MaterialRequest::with([
@@ -28,6 +31,12 @@ class MaterialRequestController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'product_id'    => 'required',
+            'qty_produksi'  => 'required|integer|min:1',
+            'boms'          => 'required|array|min:1',
+        ]);
+
         DB::beginTransaction();
 
         try {
@@ -40,9 +49,8 @@ class MaterialRequestController extends Controller
 
                 'tanggal' => now(),
 
-                'status' => 'Pending',
-
                 'created_by' => auth()->id(),
+
 
             ]);
 
@@ -73,6 +81,20 @@ class MaterialRequestController extends Controller
 
                     'qty_approved' => 0,
 
+                ]);
+
+                // 🔔 CATAT ACTIVITY
+                ActivityLog::create([
+                    'user_id'        => auth()->id(),
+                    'module'         => 'Material Request',
+                    'action'         => 'CREATE',
+
+                    // wajib sesuai struktur tabel
+                    'reference_type' => 'MaterialRequest',
+                    'reference_id'   => $mr->id,
+
+                    'description'    => 'MR baru dari Produksi - ' . $mr->nomor_mr,
+                    'ip_address'     => $request->ip(),
                 ]);
             }
 
@@ -106,6 +128,22 @@ class MaterialRequestController extends Controller
         );
     }
 
+
+    // print
+    public function print($id)
+    {
+        $request = MaterialRequest::with([
+            'details.material',
+            'productionOrder'
+        ])->findOrFail($id);
+
+        return view(
+            'material_requests.print',
+            compact('request')
+        );
+    }
+
+
     public function approve(MaterialRequest $materialRequest)
     {
 
@@ -113,8 +151,7 @@ class MaterialRequestController extends Controller
 
 
             // hanya pending yang boleh approve
-            if ($materialRequest->status !== 'Pending') {
-
+            if ($materialRequest->status !== 'Waiting Approval') {
                 return;
             }
 

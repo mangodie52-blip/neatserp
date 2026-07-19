@@ -3,11 +3,15 @@ import AppLayout from "@/Layouts/AppLayout";
 import Modal from "@/Components/Modal";
 import { useForm, router } from "@inertiajs/react";
 
+
+
+
 export default function Index({ productions }) {
 
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
+   
 
     const { data, setData, post, put, processing, reset } = useForm({
 

@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { router, usePage, Link } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 
+
 export default function Index() {
+    const [editMode, setEditMode] = useState(false);
 
     const { products } = usePage().props;
 

@@ -30,17 +30,17 @@ export default function Index() {
     // RESET FORM
     // =========================
 
-   const resetForm = () => {
+    const resetForm = () => {
 
-    setData({
-        product_id: "",
-        material_id: "",
-        kebutuhan: "",
-        satuan: "",
-        waste: "",
-    });
+        setData({
+            product_id: "",
+            material_id: "",
+            kebutuhan: "",
+            satuan: "",
+            waste: "",
+        });
 
-};
+    };
 
     // =========================
     // SIMPAN BOM
@@ -48,26 +48,26 @@ export default function Index() {
 
     const submit = (e) => {
 
-    e.preventDefault();
+        e.preventDefault();
 
-    router.post(route("boms.store"), data, {
+        router.post(route("boms.store"), data, {
 
-        preserveScroll: true,
+            preserveScroll: true,
 
-        onSuccess: () => {
+            onSuccess: () => {
 
-            setShowModal(false);
-            resetForm();
+                setShowModal(false);
+                resetForm();
 
-        },
+            },
 
-        onError: (err) => {
-            console.log(err);
-        }
+            onError: (err) => {
+                console.log(err);
+            }
 
-    });
+        });
 
-};
+    };
 
     // =========================
     // HAPUS BOM
@@ -104,17 +104,52 @@ export default function Index() {
     // SEND TO GUDANG
     // =========================
 
- const sendToGudang = () => {
+    const sendToGudang = () => {
 
-    console.log("Send To Gudang diklik");
+        if (!selectedProduct) {
+            alert("Silakan pilih produk.");
+            return;
+        }
 
-    router.post(route("material-requests.store"), {
-        product_id: selectedProduct,
-        qty_produksi: qtyProduksi,
-        boms: selectedBoms,
-    });
+        if (!qtyProduksi || qtyProduksi <= 0) {
+            alert("Masukkan Qty Produksi.");
+            return;
+        }
 
-};
+        if (selectedBoms.length === 0) {
+            alert("Silakan Calculate BOM terlebih dahulu.");
+            return;
+        }
+
+
+        router.post(
+            route("material-requests.store"),
+            {
+                product_id: selectedProduct,
+                qty_produksi: qtyProduksi,
+                boms: selectedBoms,
+            },
+            {
+                preserveScroll: true,
+
+                onSuccess: () => {
+
+                    const audio = new Audio('/sounds/notify.mp3');
+                    audio.volume = 0.6;
+
+                    audio.play();
+
+                    alert("Material Request berhasil dikirim ke Gudang.");
+                },
+            }
+        );
+    };
+
+
+
+
+
+
 
     // =========================
     // FILTER BOM
@@ -275,7 +310,7 @@ export default function Index() {
                 <div className="flex justify-center mt-6">
 
                     <PrimaryButton onClick={generateBom}>
-                         BOOM
+                        BOOM
                     </PrimaryButton>
 
                 </div>

@@ -32,7 +32,6 @@ export default function Index() {
                     >
                         + Tambah SPK
                     </PrimaryButton>
-
                 </div>
 
                 <ProductionTable
@@ -51,11 +50,11 @@ export default function Index() {
                         setShowModal(false);
                         setSelectedOrder(null);
                     }}
-        />
+                />
 
-    </div>
+            </div>
 
-</AppLayout>
+        </AppLayout>
 
     );
 

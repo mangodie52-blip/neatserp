@@ -148,7 +148,9 @@ export default function Index({ materials }) {
 
                                         <td className="p-3">{item.kategori}</td>
 
-                                        <td className="p-3 text-center">{item.stok}</td>
+                                        <td className="p-3 text-center">
+                                            {Math.floor(Number(item.stok))}
+                                        </td>
 
                                         <td className="p-3 text-center">{item.satuan}</td>
 
@@ -161,13 +163,13 @@ export default function Index({ materials }) {
                                                 onClick={() => editMaterial(item)}
                                                 className="hover:bg-yellow-600 text-black px-3 py-1 rounded"
                                             >
-                                                 Edit
+                                                Edit
                                             </button>
                                             <button
                                                 onClick={() => deleteMaterial(item.id)}
                                                 className="hover:bg-red-600 text-black px-3 py-1 rounded"
                                             >
-                                                 Hapus
+                                                Hapus
                                             </button>
                                         </td>
 
@@ -270,10 +272,12 @@ export default function Index({ materials }) {
                                 <label className="block mb-1">Harga</label>
 
                                 <input
-                                    type="number"
-                                    value={data.harga}
-                                    onChange={(e) => setData("harga", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
+                                    type="text"
+                                    value={Number(data.harga || 0).toLocaleString("id-ID")}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\./g, "").replace(/\D/g, "");
+                                        setData("harga", value);
+                                    }}
                                 />
 
                             </div>

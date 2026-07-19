@@ -23,8 +23,8 @@ class MaterialController extends Controller
             'nama' => 'required',
             'kategori' => 'required',
             'satuan' => 'required',
-            'stok' => 'required|numeric',
-            'stok_minimum' => 'required|numeric',
+            'stok' => 'required|integer|min:0',
+            'stok_minimum' => 'required|integer|min:0',
             'harga' => 'required|numeric',
         ]);
 
