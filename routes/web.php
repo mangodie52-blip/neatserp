@@ -17,14 +17,6 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-
-
-
-Route::get('/', function () {
-    return redirect('/login');
-});
-
-
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
@@ -107,6 +99,20 @@ Route::middleware(['auth'])->group(function () {
         [MaterialRequestController::class, 'approve']
     )->name('material-requests.approve');
 
+    Route::post(
+        '/material-requests/{materialRequest}/reject',
+        [MaterialRequestController::class, 'reject']
+    )->name('material-requests.reject');
+
+    Route::get(
+        '/material-requests/{materialRequest}',
+        [MaterialRequestController::class, 'show']
+    )->name('material-requests.show');
+
+    Route::post(
+        '/material-requests/{materialRequest}/cancel',
+        [MaterialRequestController::class, 'cancel']
+    )->name('material-requests.cancel');
 });
 
 require __DIR__ . '/auth.php';

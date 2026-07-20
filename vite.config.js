@@ -4,8 +4,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
     server: {
-        host: '0.0.0.0',
+        host: '0.0.0.0',          // ⬅️ ganti dari '0.0.0.0'
         port: 5173,
+        hmr: {
+            host: 'localhost', // desktop tetap normal
+        },
     },
 
     plugins: [
