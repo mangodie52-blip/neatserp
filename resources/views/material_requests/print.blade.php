@@ -1,60 +1,66 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
     <title>Material Request - {{ $request->nomor_mr }}</title>
 
     <style>
-
         body {
             font-family: Arial, sans-serif;
-            font-size: 14px;
-            margin: 40px;
+            font-size: 12px;
+            color: #000;
         }
 
-        .header {
+        .title {
             text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .header h2 {
-            margin: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
-        table, th, td {
-            border: 1px solid black;
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: center;
+            /* center horizontal */
+            vertical-align: middle;
+            /* center vertical */
         }
 
         th {
-            background: #eee;
+            background: #1e293b;
+            color: #fff;
+            font-weight: bold;
         }
 
-        th, td {
-            padding: 8px;
+        .left {
+            text-align: left;
         }
 
-        .info {
-            margin-bottom: 20px;
+        .header-table td {
+            border: none;
+            padding: 4px 0;
+            text-align: left;
         }
 
         .signature {
-            margin-top: 60px;
-            display: flex;
-            justify-content: space-between;
-            text-align: center;
+            margin-top: 50px;
+            width: 100%;
         }
 
+        .signature td {
+            border: none;
+            text-align: center;
+            padding-top: 40px;
+        }
     </style>
 
 </head>
@@ -64,160 +70,155 @@
 
 
 
-<div class="header">
+    <div class="header">
 
-    <h1>NEATS ERP</h1>
+        <h1>NEATS ERP</h1>
 
-    <h2>MATERIAL REQUEST</h2>
+        <h2>MATERIAL REQUEST</h2>
 
-</div>
+    </div>
 
 
 
-<div class="info">
+    <div class="info">
 
-    <p>
-        No MR :
-        <b>{{ $request->nomor_mr }}</b>
-    </p>
+        <p>
+            No MR :
+            <b>{{ $request->nomor_mr }}</b>
+        </p>
 
 
-    <p>
-        Tanggal :
-        {{ $request->tanggal }}
-    </p>
+        <p>
+            Tanggal :
+            {{ $request->tanggal }}
+        </p>
 
 
-    <p>
-        Status :
-        {{ $request->status }}
-    </p>
+        <p>
+            Status :
+            {{ $request->status }}
+        </p>
 
 
-    @if($request->productionOrder)
+        @if ($request->productionOrder)
+            <p>
+                SPK :
+                {{ $request->productionOrder->nomor_spk }}
+            </p>
+        @endif
 
-    <p>
-        SPK :
-        {{ $request->productionOrder->nomor_spk }}
-    </p>
 
-    @endif
+    </div>
 
 
-</div>
 
 
+    <table>
 
+        <thead>
 
-<table>
+            <tr>
 
-<thead>
+                <th>No</th>
 
-<tr>
+                <th>Kode</th>
 
-    <th>No</th>
+                <th>Material</th>
 
-    <th>Kode</th>
+                <th>Qty Request</th>
 
-    <th>Material</th>
+                <th>Qty Approved</th>
 
-    <th>Qty Request</th>
+                <th>Satuan</th>
 
-    <th>Qty Approved</th>
+            </tr>
 
-    <th>Satuan</th>
+        </thead>
 
-</tr>
 
-</thead>
+        <tbody>
 
 
-<tbody>
+            @foreach ($request->details as $index => $detail)
+                <tr>
 
+                    <td>
+                        {{ $index + 1 }}
+                    </td>
 
-@foreach($request->details as $index => $detail)
 
-<tr>
+                    <td>
+                        {{ $detail->material->kode }}
+                    </td>
 
-    <td>
-        {{ $index + 1 }}
-    </td>
 
+                    <td>
+                        {{ $detail->material->nama }}
+                    </td>
 
-    <td>
-        {{ $detail->material->kode }}
-    </td>
 
+                    <td style="text-align:center">
 
-    <td>
-        {{ $detail->material->nama }}
-    </td>
+                        {{ number_format($detail->qty_request) }}
 
+                    </td>
 
-    <td style="text-align:center">
 
-        {{ number_format($detail->qty_request) }}
+                    <td style="text-align:center">
 
-    </td>
+                        {{ number_format($detail->qty_approved ?? 0) }}
 
+                    </td>
 
-    <td style="text-align:center">
 
-        {{ number_format($detail->qty_approved ?? 0) }}
+                    <td>
 
-    </td>
+                        {{ $detail->material->satuan }}
 
+                    </td>
 
-    <td>
 
-        {{ $detail->material->satuan }}
+                </tr>
+            @endforeach
 
-    </td>
 
+        </tbody>
 
-</tr>
+    </table>
 
 
-@endforeach
 
+    <div class="signature">
 
-</tbody>
 
-</table>
+        <div>
 
+            <br><br><br>
 
+            __________________
 
-<div class="signature">
+            <br>
 
+            Dibuat Oleh
 
-<div>
+        </div>
 
-<br><br><br>
 
-__________________
 
-<br>
+        <div>
 
-Dibuat Oleh
+            <br><br><br>
 
-</div>
+            __________________
 
+            <br>
 
+            Disetujui Gudang
 
-<div>
+        </div>
 
-<br><br><br>
 
-__________________
-
-<br>
-
-Disetujui Gudang
-
-</div>
-
-
-</div>
+    </div>
 
 
 

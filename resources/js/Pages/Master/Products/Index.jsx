@@ -36,6 +36,26 @@ export default function Index() {
         keterangan: "",
     });
 
+    const placeholders = {
+        kode: 'KODE',
+        nama: 'NAMA PRODUK TAS',
+        customer: 'NAMA COSTUMER',
+        warna: 'WARNA PERMINTAAN',
+        ukuran: 'NONE',
+        kategori: 'KATEGORI',
+        keterangan: 'KETERANGAN',
+    };
+
+    const labels = {
+        kode: 'Kode Product',
+        nama: 'Nama Product',
+        customer: 'Customer',
+        warna: 'Warna',
+        ukuran: 'Ukuran',
+        kategori: 'Kategori',
+        keterangan: 'Keterangan',
+    };
+
     // ===========================
     // RESET FORM
     // ===========================
@@ -78,22 +98,21 @@ export default function Index() {
     // ===========================
     // BUKA MODAL EDIT
     // ===========================
+    const [editingId, setEditingId] = useState(null);
+    const editProduct = (product) => {
 
-    const openEdit = (product) => {
-
-        setEditData({
-            id: product.id,
-            kode: product.kode,
-            nama: product.nama,
-            customer: product.customer,
-            warna: product.warna,
-            ukuran: product.ukuran,
-            kategori: product.kategori,
-            keterangan: product.keterangan,
+        setData({
+            kode: product.kode || '',
+            nama: product.nama || '',
+            customer: product.customer || '',
+            warna: product.warna || '',
+            ukuran: product.ukuran || '',
+            kategori: product.kategori || '',
+            keterangan: product.keterangan || '',
         });
 
-        setShowEditModal(true);
-
+        setEditingId(product.id); // simpan ID yang sedang diedit
+        setShowModal(true);       // buka modal
     };
 
     // ===========================
@@ -222,12 +241,12 @@ export default function Index() {
                                         </td>
 
 
-                                        <td className="px-1 py-3 flex gap-1">
+                                        <td className="px-10 py-3 flex gap-1">
 
 
                                             <button
-                                                onClick={() => openEdit(product)}
-                                                className="hover:bg-yellow-600 text-black px-3 py-1 rounded"
+                                                onClick={() => editProduct(product)}
+                                                className="bg-white-500 hover:bg-yellow-600 text-black px-3 py-1 rounded"
                                             >
                                                 Edit
                                             </button>
@@ -238,17 +257,6 @@ export default function Index() {
                                             >
                                                 Hapus
                                             </button>
-
-
-                                            <Link
-                                                href={route("boms.index")}
-                                                className="hover:bg-blue-600 text-black px-2 py-1 rounded"
-                                            >
-                                                BOM
-                                            </Link>
-
-
-
 
                                         </td>
 
@@ -295,33 +303,41 @@ export default function Index() {
 
 
                             {
-                                Object.keys(data).map((field) => (
 
-                                    <input
+                                ['kode', 'nama', 'customer', 'warna', 'ukuran', 'kategori', 'keterangan'].map((field) => (
 
-                                        key={field}
+                                    <div key={field} className="mb-4">
 
-                                        className="border w-full p-2 mb-3 rounded"
+                                        {/* Judul di atas kotak */}
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
 
-                                        placeholder={field}
+                                            {field === 'kode' && 'Kode Product'}
+                                            {field === 'nama' && 'Nama Product'}
+                                            {field === 'customer' && 'Customer'}
+                                            {field === 'warna' && 'Warna'}
+                                            {field === 'ukuran' && 'Ukuran'}
+                                            {field === 'kategori' && 'Kategori'}
+                                            {field === 'keterangan' && 'Keterangan'}
 
-                                        value={data[field]}
+                                        </label>
 
-                                        onChange={(e) =>
-                                            setData({
-                                                ...data,
-                                                [field]: e.target.value
-                                            })
-                                        }
+                                        {/* Kotak input */}
+                                        <input
+                                            className="border border-gray-300 w-full p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder={placeholders[field]}
+                                            value={data[field]}
+                                            onChange={(e) =>
+                                                setData({
+                                                    ...data,
+                                                    [field]: e.target.value
+                                                })
+                                            }
+                                        />
 
-                                    />
-
-
+                                    </div>
 
                                 ))
                             }
-
-
 
                             <div className="flex justify-end gap-2">
 

@@ -191,118 +191,265 @@ export default function Index({ materials }) {
 
                 <form onSubmit={submit}>
 
-                    <div className="p-6">
+                    {/* Kode Material */}
+                    <div className="mb-4">
 
-                        <h2 className="text-2xl font-bold mb-6">
-                            Tambah Material
-                        </h2>
+                        <label className="block font-semibold mb-2">
+                            Kode Material
+                        </label>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <input
+                            type="text"
+                            value={data.kode}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    kode: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder="Contoh: KNV-001"
+                            required
+                        />
 
-                            <div>
-                                <label className="block mb-1">Kode Material</label>
+                    </div>
 
-                                <input
-                                    value={data.kode}
-                                    onChange={(e) => setData("kode", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
-                                />
-                            </div>
+                    {/* Nama Material */}
+                    <div className="mb-4">
 
-                            <div>
-                                <label className="block mb-1">Nama Material</label>
+                        <label className="block font-semibold mb-2">
+                            Nama Material
+                        </label>
 
-                                <input
-                                    value={data.nama}
-                                    onChange={(e) => setData("nama", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
-                                />
-                            </div>
+                        <input
+                            type="text"
+                            value={data.nama}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    nama: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder="Contoh: Kain Canvas"
+                            required
+                        />
 
-                            <div>
-                                <label className="block mb-1">Kategori</label>
+                    </div>
 
-                                <input
-                                    value={data.kategori}
-                                    onChange={(e) => setData("kategori", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
-                                />
-                            </div>
+                    {/* Kategori */}
+                    <div className="mb-4">
 
-                            <div>
-                                <label className="block mb-1">Satuan</label>
+                        <label className="block font-semibold mb-2">
+                            Kategori
+                        </label>
 
-                                <select
-                                    value={data.satuan}
-                                    onChange={(e) => setData("satuan", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
-                                >
-                                    <option value="PCS">PCS</option>
-                                    <option value="Meter">Meter</option>
-                                    <option value="Roll">Roll</option>
-                                    <option value="Kg">Kg</option>
-                                </select>
+                        <select
+                            value={data.kategori}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    kategori: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            required
+                        >
 
-                            </div>
+                            <option value="">Pilih Kategori</option>
 
-                            <div>
-                                <label className="block mb-1">Stok Awal</label>
+                            <option value="Kain">Kain</option>
 
-                                <input
-                                    type="number"
-                                    value={data.stok}
-                                    onChange={(e) => setData("stok", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
-                                />
-                            </div>
+                            <option value="Aksesoris">Aksesoris</option>
 
-                            <div>
-                                <label className="block mb-1">Stok Minimum</label>
+                            <option value="Benang">Benang</option>
 
-                                <input
-                                    type="number"
-                                    value={data.stok_minimum}
-                                    onChange={(e) => setData("stok_minimum", e.target.value)}
-                                    className="w-full border rounded-lg p-2"
-                                />
-                            </div>
+                            <option value="Lem">Lem</option>
 
-                            <div className="col-span-2">
+                            <option value="Busa">Busa</option>
 
-                                <label className="block mb-1">Harga</label>
+                            <option value="Webbing">Webbing</option>
 
-                                <input
-                                    type="text"
-                                    value={Number(data.harga || 0).toLocaleString("id-ID")}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/\./g, "").replace(/\D/g, "");
-                                        setData("harga", value);
-                                    }}
-                                />
+                            <option value="Hardware">Hardware</option>
 
-                            </div>
+                            <option value="Kemasan">Kemasan</option>
 
-                        </div>
+                            <option value="Lainnya">Lainnya</option>
 
-                        <div className="flex justify-end gap-3 mt-6">
+                        </select>
 
-                            <button
-                                type="button"
-                                onClick={() => setShowModal(false)}
-                                className="px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
-                            >
-                                Batal
-                            </button>
+                    </div>
 
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                                {processing ? "Menyimpan..." : "💾 Simpan"}
-                            </button>
+                    {/* Satuan */}
+                    <div className="mb-4">
 
-                        </div>
+                        <label className="block font-semibold mb-2">
+                            Satuan
+                        </label>
+
+                        <select
+                            value={data.satuan}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    satuan: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            required
+                        >
+
+                            <option value="">Pilih Satuan</option>
+
+                            <option value="PCS">PCS</option>
+
+                            <option value="M">Meter (M)</option>
+
+                            <option value="CM">Centimeter (CM)</option>
+
+                            <option value="MM">Milimeter (MM)</option>
+
+                            <option value="Roll">Roll</option>
+
+                            <option value="Box">Box</option>
+
+                            <option value="Dus">Dus</option>
+
+                            <option value="Cone">Cone</option>
+
+                            <option value="Kg">Kilogram (Kg)</option>
+
+                            <option value="Gram">Gram</option>
+
+                            <option value="Liter">Liter</option>
+
+                            <option value="Kaleng">Kaleng</option>
+
+                        </select>
+
+                    </div>
+
+                    {/* Stok Awal */}
+                    <div className="mb-4">
+
+                        <label className="block font-semibold mb-2">
+                            Stok Awal
+                        </label>
+
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.0001"
+                            value={data.stok}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    stok: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder="Contoh: 50.0000"
+                            required
+                        />
+
+                    </div>
+
+                    {/* Isi Kemasan */}
+                    <div className="mb-4">
+
+                        <label className="block font-semibold mb-2">
+                            Isi Kemasan
+                        </label>
+
+                        <input
+                            type="number"
+                            min="0.0001"
+                            step="0.0001"
+                            value={data.isi_kemasan}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    isi_kemasan: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder="Contoh: 50.0000"
+                            required
+                        />
+
+                        <p className="text-xs text-gray-500 mt-1">
+                            Contoh: 50 meter per roll, 100 pcs per box, 5 kg per kaleng.
+                        </p>
+
+                    </div>
+
+                    {/* Stok Minimum */}
+                    <div className="mb-4">
+
+                        <label className="block font-semibold mb-2">
+                            Stok Minimum
+                        </label>
+
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.0001"
+                            value={data.stok_minimum}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    stok_minimum: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder="Contoh: 5.0000"
+                            required
+                        />
+
+                    </div>
+
+                    {/* Harga */}
+                    <div className="mb-6">
+
+                        <label className="block font-semibold mb-2">
+                            Harga
+                        </label>
+
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={data.harga}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    harga: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder="Contoh: 25000"
+                            required
+                        />
+
+                    </div>
+
+                    {/* Tombol */}
+                    <div className="flex justify-end gap-3">
+
+                        <button
+                            type="button"
+                            onClick={() => setShowModal(false)}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded"
+                        >
+                            Batal
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
+                        >
+                            Simpan
+                        </button>
 
                     </div>
 

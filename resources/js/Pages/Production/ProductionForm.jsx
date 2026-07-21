@@ -8,8 +8,7 @@ export default function ProductionForm({
     onClose,
     products,
     order = null,
-    
-}) {
+    }) {
 
     const [data, setData] = useState({
         nomor_spk: "",
@@ -124,7 +123,9 @@ export default function ProductionForm({
 
                     <input
                         type="number"
-                        placeholder="Qty"
+                        placeholder=" Jumlah Permin
+                        
+                        taan Yg Di Inginkan"
                         value={data.qty}
                         onChange={(e) =>
                             setData({

@@ -33,83 +33,114 @@ class MaterialRequestController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'product_id'    => 'required',
-            'qty_produksi'  => 'required|integer|min:1',
+            'product_id'    => 'required|exists:products,id',
+            'qty_produksi'  => 'required|numeric|min:0.0001',
             'boms'          => 'required|array|min:1',
+
+            'boms.*.material_id' => 'required|exists:materials,id',
+            'boms.*.qty_request' => 'required|numeric|min:0.0001',
+            'boms.*.satuan'      => 'required|string',
         ]);
 
         DB::beginTransaction();
 
         try {
 
+            // =========================
+            // GENERATE NOMOR MR
+            // Format: MR-250721-001
+            // =========================
+
+            $tanggal = now()->format('ymd'); // 250721
+
+            $lastMr = MaterialRequest::whereDate('created_at', today())
+                ->latest('id')
+                ->first();
+
+            $urutan = $lastMr
+                ? ((int) substr($lastMr->nomor_mr, -3)) + 1
+                : 1;
+
+            $nomorMr = 'MR-' . $tanggal . '-' . str_pad($urutan, 3, '0', STR_PAD_LEFT);
+
+            // =========================
+            // HEADER MATERIAL REQUEST
+            // =========================
             $mr = MaterialRequest::create([
 
-                'nomor_mr' => 'MR-' . now()->format('YmdHis'),
+                'nomor_mr'           => 'MR-' . now()->format('YmdHis'),
 
                 'production_order_id' => null,
 
-                'tanggal' => now(),
+                'tanggal'            => now(),
 
-                'created_by' => auth()->id(),
+                'status'             => 'Waiting Approval',
 
+                'created_by'         => auth()->id(),
 
             ]);
 
 
+            // =========================
+            // DETAIL MATERIAL REQUEST
+            // =========================
             foreach ($request->boms as $bom) {
-
-                $qtyProduksi = (float)$request->qty_produksi;
-
-                $kebutuhan = (float)$bom['kebutuhan'];
-
-                $waste = (float)$bom['waste'];
-
-
-                $subtotal = $qtyProduksi * $kebutuhan;
-
-                $total = (int) ceil(
-                    $subtotal + ($subtotal * $waste / 100)
-                );
-
 
                 MaterialRequestDetail::create([
 
                     'material_request_id' => $mr->id,
 
-                    'material_id' => $bom['material_id'],
+                    'material_id'         => $bom['material_id'],
 
-                    'qty_request' => $total,
+                    // hasil final dari React (sudah decimal)
+                    'qty_request'         => round((float) $bom['qty_request'], 4),
 
-                    'qty_approved' => 0,
+                    'qty_approved'        => 0,
 
-                ]);
+                    // satuan mengikuti BOM
+                    'satuan'              => $bom['satuan'],
 
-                // 🔔 CATAT ACTIVITY
-                ActivityLog::create([
-                    'user_id'        => auth()->id(),
-                    'module'         => 'Material Request',
-                    'action'         => 'CREATE',
-
-                    // wajib sesuai struktur tabel
-                    'reference_type' => 'MaterialRequest',
-                    'reference_id'   => $mr->id,
-
-                    'description'    => 'MR baru dari Produksi - ' . $mr->nomor_mr,
-                    'ip_address'     => $request->ip(),
                 ]);
             }
+
+
+            // =========================
+            // ACTIVITY LOG
+            // =========================
+            ActivityLog::create([
+
+                'user_id'        => auth()->id(),
+
+                'module'         => 'Material Request',
+
+                'action'         => 'CREATE',
+
+                'reference_type' => 'MaterialRequest',
+
+                'reference_id'   => $mr->id,
+
+                'description'    => 'MR baru dari Produksi - ' . $mr->nomor_mr,
+
+                'ip_address'     => $request->ip(),
+
+            ]);
 
 
             DB::commit();
 
 
             return redirect()
-                ->route('material-requests.index');
+                ->route('material-requests.index')
+                ->with('success', 'Material Request berhasil dikirim ke Gudang.');
         } catch (\Exception $e) {
 
             DB::rollBack();
 
-            dd($e->getMessage());
+            dd([
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ]);
         }
     }
 

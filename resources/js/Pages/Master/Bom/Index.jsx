@@ -8,6 +8,18 @@ export default function Index() {
     const { boms, products, materials } = usePage().props;
 
     // =========================
+    // FORMAT ANGKA
+    // =========================
+    const formatNumber = (num) => {
+        const value = parseFloat(num || 0);
+
+        // hilangkan nol di belakang koma
+        return value % 1 === 0
+            ? value.toString()
+            : value.toFixed(4).replace(/\.?0+$/, '');
+    };
+
+    // =========================
     // STATE
     // =========================
 
@@ -107,49 +119,66 @@ export default function Index() {
     const sendToGudang = () => {
 
         if (!selectedProduct) {
-            alert("Silakan pilih produk.");
+            alert('Silakan pilih produk.');
             return;
         }
 
         if (!qtyProduksi || qtyProduksi <= 0) {
-            alert("Masukkan Qty Produksi.");
+            alert('Masukkan Qty Produksi.');
             return;
         }
 
-        if (selectedBoms.length === 0) {
-            alert("Silakan Calculate BOM terlebih dahulu.");
-            return;
-        }
+        const formatNumber = (num) => {
+            return parseFloat(num || 0).toString();
+        };
 
+        // hitung ulang dan kirim hasil decimal
+        const calculatedBoms = selectedBoms.map((bom) => {
+
+            const qty = Number(qtyProduksi);
+
+            const kebutuhan = Number(bom.kebutuhan || 0);
+
+            const waste = Number(bom.waste || 0);
+
+            const isiKemasan = Number(
+                bom.material?.isi_kemasan || 1
+            );
+
+            const kemasan =
+                isiKemasan <= 0 ? 1 : isiKemasan;
+
+            const qtyRequest =
+                (
+                    kebutuhan *
+                    qty *
+                    (1 + waste / 100)
+                ) / kemasan;
+
+            return {
+                material_id: bom.material_id,
+                qty_request: Number(qtyRequest.toFixed(4)),
+                satuan: bom.satuan,
+            };
+
+        });
 
         router.post(
-            route("material-requests.store"),
+            route('material-requests.store'),
             {
                 product_id: selectedProduct,
                 qty_produksi: qtyProduksi,
-                boms: selectedBoms,
+                boms: calculatedBoms,
             },
             {
                 preserveScroll: true,
 
                 onSuccess: () => {
-
-                    const audio = new Audio('/sounds/notify.mp3');
-                    audio.volume = 0.6;
-
-                    audio.play();
-
-                    alert("Material Request berhasil dikirim ke Gudang.");
+                    alert('Material Request berhasil dikirim.');
                 },
             }
         );
     };
-
-
-
-
-
-
 
     // =========================
     // FILTER BOM
@@ -254,8 +283,10 @@ export default function Index() {
                                             {bom.product?.nama}
                                         </td>
 
-                                        <td className="border px-4 py-2">
-                                            {bom.material?.nama}
+                                        <td className="border p-3 text-center align-middle">
+                                            <div className="font-semibold flex items-center justify-center min-h-[44px]">
+                                                {bom.material?.nama}
+                                            </div>
                                         </td>
 
                                         <td className="border px-4 py-2">
@@ -417,26 +448,78 @@ export default function Index() {
 
                             </div>
 
-                            {/* Satuan */}
-
+                            {/* Satuan BOM */}
                             <div className="mb-4">
 
                                 <label className="block font-semibold mb-2">
-                                    Satuan
+                                    Satuan BOM
                                 </label>
 
-
-                                <input
-                                    type="text"
-                                    value={
-                                        materials.find(
-                                            (m) =>
-                                                Number(m.id) === Number(data.material_id)
-                                        )?.satuan || ""
+                                <select
+                                    value={data.satuan}
+                                    onChange={(e) =>
+                                        setData({
+                                            ...data,
+                                            satuan: e.target.value,
+                                        })
                                     }
-                                    className="w-full border rounded-lg p-2 bg-gray-100"
-                                    readOnly
-                                />
+                                    className="w-full border rounded-lg p-2"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Pilih Satuan
+                                    </option>
+
+                                    <option value="PCS">
+                                        PCS
+                                    </option>
+
+                                    <option value="M">
+                                        Meter (M)
+                                    </option>
+
+                                    <option value="CM">
+                                        Centimeter (CM)
+                                    </option>
+
+                                    <option value="MM">
+                                        Milimeter (MM)
+                                    </option>
+
+                                    <option value="Roll">
+                                        Roll
+                                    </option>
+
+                                    <option value="Box">
+                                        Box
+                                    </option>
+
+                                    <option value="Dus">
+                                        Dus
+                                    </option>
+
+                                    <option value="Cone">
+                                        Cone
+                                    </option>
+
+                                    <option value="Kg">
+                                        Kilogram (Kg)
+                                    </option>
+
+                                    <option value="Gram">
+                                        Gram
+                                    </option>
+
+                                    <option value="Liter">
+                                        Liter
+                                    </option>
+
+                                    <option value="Kaleng">
+                                        Kaleng
+                                    </option>
+
+                                </select>
 
                             </div>
                             {/* Kebutuhan */}
@@ -458,7 +541,7 @@ export default function Index() {
                                         })
                                     }
                                     className="w-full border rounded-lg p-2"
-                                    placeholder="Contoh : 2"
+                                    placeholder="Material Per PCS"
                                     required
                                 />
 
@@ -595,7 +678,7 @@ export default function Index() {
                                 min="1"
                                 value={qtyProduksi}
                                 onChange={(e) => setQtyProduksi(e.target.value)}
-                                placeholder="ty sesuai order"
+                                placeholder="sesuai order permintaan"
                                 className="border rounded-lg p-2 w-52"
                             />
 
@@ -603,25 +686,25 @@ export default function Index() {
 
                         {/* Tabel */}
 
-                        <table className="w-full border-collapse">
+                        <table className="w-full border-collapse text-center">
 
-                            <thead className="bg-slate-800 text-white">
+                            <thead className="bg-slate-900 text-white">
 
                                 <tr>
 
-                                    <th className="border p-3">
+                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
                                         Material
                                     </th>
 
-                                    <th className="border p-3">
+                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
                                         Satuan
                                     </th>
 
-                                    <th className="border p-3">
+                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
                                         Waste
                                     </th>
 
-                                    <th className="border p-3">
+                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
                                         Total Kebutuhan
                                     </th>
 
@@ -637,43 +720,65 @@ export default function Index() {
 
                                         const qty = Number(qtyProduksi || 0);
 
+                                        // kebutuhan per pcs
                                         const kebutuhan = Number(bom.kebutuhan || 0);
 
-                                        // kebutuhan material tanpa waste
-                                        const subtotal = qty * kebutuhan;
+                                        // waste %
+                                        const waste = Number(bom.waste || 0);
 
-                                        // hitung waste
-                                        const waste =
-                                            subtotal * Number(bom.waste || 0) / 100;
+                                        // isi kemasan dari material
+                                        const isiKemasan = Number(
+                                            bom.material?.isi_kemasan || 1
+                                        );
 
-                                        // total material yang dibutuhkan
+                                        const kemasan =
+                                            isiKemasan <= 0 ? 1 : isiKemasan;
+
+                                        // =========================
+                                        // RUMUS BARU DECIMAL
+                                        // (kebutuhan × qty produksi × (1 + waste%)) ÷ isi kemasan
+                                        // =========================
                                         const total =
-                                            Math.ceil(subtotal + waste);
-
+                                            kebutuhan *
+                                            qty *
+                                            (1 + waste / 100);
 
                                         return (
 
-                                            <tr key={bom.id}>
+                                            <tr
+                                                key={bom.id}
+                                                className="hover:bg-gray-50 transition-colors"
+                                            >
 
-                                                <td className="border p-3">
-                                                    {bom.material?.nama}
+                                                {/* Material */}
+                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
+                                                    <div className="font-semibold text-lg flex items-center justify-center min-h-[44px]">
+                                                        {bom.material?.nama}
+                                                    </div>
                                                 </td>
 
-
-                                                <td className="border p-3 text-center">
-                                                    {bom.kebutuhan} {bom.material?.satuan}
+                                                {/* Satuan BOM */}
+                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
+                                                    <div className="font-medium text-base">
+                                                        {formatNumber(bom.kebutuhan)} {bom.satuan}
+                                                    </div>
                                                 </td>
 
-
-                                                <td className="border p-3 text-center">
-                                                    {parseInt(bom.waste || 0)} %
+                                                {/* Waste */}
+                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
+                                                    <div className="font-medium text-base">
+                                                        {formatNumber(bom.waste || 0)} %
+                                                    </div>
                                                 </td>
 
-
-                                                <td className="border p-3 text-center font-bold text-blue-600">
-                                                    {qtyProduksi ? total : "-"}
+                                                {/* Total kebutuhan */}
+                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
+                                                    <div className="font-bold text-lg text-black-700">
+                                                        {qty > 0
+                                                            ? `${formatNumber(total)} ${bom.satuan}`
+                                                            : '-'}
+                                                    </div>
                                                 </td>
-
 
                                             </tr>
 
