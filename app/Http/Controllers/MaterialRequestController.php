@@ -13,64 +13,84 @@ use App\Models\ActivityLog;
 
 class MaterialRequestController extends Controller
 {
-   public function index()
-{
-    MaterialRequest::where('status', 'Waiting Approval')
-        ->where('created_at', '<=', now()->subHours(8))
-        ->update([
-            'status' => 'Pending'
+    public function index()
+    {
+        MaterialRequest::where('status', 'Waiting Approval')
+            ->where('created_at', '<=', now()->subHours(8))
+            ->update([
+                'status' => 'Pending'
+            ]);
+
+        $requests = MaterialRequest::with([
+            'productionOrder.product',
+            'details.material'
+        ])
+            ->withCount('details')
+            ->where('status', '!=', 'Cancelled')
+            ->latest()
+            ->get()
+            ->map(function ($mr) {
+
+                $mr->material_ready_count = $mr->details
+                    ->where('qty_approved', '>', 0)
+                    ->count();
+
+                $materials = $mr->details
+                    ->pluck('material.nama')
+                    ->filter()
+                    ->values();
+
+                $mr->material_preview = match (true) {
+                    $materials->count() === 0 => '-',
+                    $materials->count() === 1 => $materials[0],
+                    $materials->count() === 2 => $materials[0] . ', ' . $materials[1],
+                    default => $materials[0] . ' + ' . ($materials->count() - 1) . ' material lainnya',
+                };
+
+                return $mr;
+            });
+
+        $requests->transform(function ($mr) {
+
+            $mr->material_ready_count = $mr->details
+                ->where('qty_approved', '>', 0)
+                ->count();
+
+            $materials = $mr->details
+                ->pluck('material.nama')
+                ->filter()
+                ->values();
+
+            $mr->material_preview = match (true) {
+                $materials->count() === 0 => '-',
+                $materials->count() === 1 => $materials[0],
+                $materials->count() === 2 => $materials[0] . ', ' . $materials[1],
+                default => $materials[0] . ' + ' . ($materials->count() - 1) . ' material lainnya',
+            };
+
+            return $mr;
+        });
+
+        return Inertia::render('Gudang/MaterialRequest/Index', [
+            'requests' => $requests,
         ]);
-
-    $requests = MaterialRequest::with([
-        'productionOrder.product',
-        'details.material'
-    ])
-    ->withCount('details')
-    ->where('status', '!=', 'Cancelled')
-    ->latest()
-    ->get();
-
-    $requests->transform(function ($mr) {
-
-        $mr->material_ready_count = $mr->details
-            ->where('qty_approved', '>', 0)
-            ->count();
-
-        $materials = $mr->details
-            ->pluck('material.nama')
-            ->filter()
-            ->values();
-
-        $mr->material_preview = match (true) {
-            $materials->count() === 0 => '-',
-            $materials->count() === 1 => $materials[0],
-            $materials->count() === 2 => $materials[0] . ', ' . $materials[1],
-            default => $materials[0] . ' + ' . ($materials->count() - 1) . ' material lainnya',
-        };
-
-        return $mr;
-    });
-
-    return Inertia::render('Gudang/MaterialRequest/Index', [
-        'requests' => $requests,
-    ]);
-}
+    }
 
 
     public function store(Request $request)
     {
         $request->validate([
-    'boms.*.material_id' => 'required|exists:materials,id',
-    'boms.*.qty_request' => 'required|numeric|min:0.0001',
-    'boms.*.satuan'      => 'required|string',
+            'boms.*.material_id' => 'required|exists:materials,id',
+            'boms.*.qty_request' => 'required|numeric|min:0.0001',
+            'boms.*.satuan'      => 'required|string',
 
-    // ubah required menjadi nullable
-    'production_order_id' => 'nullable|exists:production_orders,id',
+            // ubah required menjadi nullable
+            'production_order_id' => 'nullable|exists:production_orders,id',
 
-    'product_id'          => 'required|exists:products,id',
-    'qty_produksi'        => 'required|numeric|min:0.0001',
-    'boms'                => 'required|array|min:1',
-]);
+            'product_id'          => 'required|exists:products,id',
+            'qty_produksi'        => 'required|numeric|min:0.0001',
+            'boms'                => 'required|array|min:1',
+        ]);
 
         DB::beginTransaction();
 
@@ -164,16 +184,16 @@ class MaterialRequestController extends Controller
     }
 
     public function print($id)
-{
-    $mr = MaterialRequest::with([
-        'productionOrder.product',
-        'details.material',
-        'creator',
-        'approver'
-    ])->findOrFail($id);
+    {
+        $mr = MaterialRequest::with([
+            'productionOrder.product',
+            'details.material',
+            'creator',
+            'approver'
+        ])->findOrFail($id);
 
-    return view('material_requests.print', compact('mr'));
-}
+        return view('material_requests.print', compact('mr'));
+    }
 
 
     public function approve(MaterialRequest $materialRequest)
@@ -275,7 +295,33 @@ class MaterialRequestController extends Controller
                 'ip_address'     => request()->ip(),
             ]);
         });
-
         return back()->with('success', 'Material Request berhasil diproses');
+    }
+
+    public function reject(Request $request, MaterialRequest $materialRequest)
+    {
+        $request->validate([
+            'reason' => 'required|string|min:5',
+        ]);
+
+        $materialRequest->update([
+            'status' => 'Rejected',
+            'reject_reason' => $request->reason,
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
+
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'module' => 'Material Request',
+            'action' => 'REJECT',
+            'reference_type' => 'MaterialRequest',
+            'reference_id' => $materialRequest->id,
+            'activity' => 'Reject Material Request',
+            'description' => 'Reject MR ' . $materialRequest->nomor_mr,
+            'ip_address' => request()->ip(),
+        ]);
+
+        return back()->with('success', 'Material Request berhasil direject.');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProductionProgress;
 
 class ProductionOrder extends Model
 {
@@ -29,5 +30,15 @@ class ProductionOrder extends Model
         return $this->hasMany(
             ProductionOperation::class
         );
+    }
+
+    public function materialRequests()
+    {
+        return $this->hasMany(\App\Models\MaterialRequest::class);
+    }
+    
+    public function progresses()
+    {
+        return $this->hasMany(ProductionProgress::class);
     }
 }

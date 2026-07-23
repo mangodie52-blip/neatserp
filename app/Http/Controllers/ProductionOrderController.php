@@ -19,15 +19,16 @@ class ProductionOrderController extends Controller
      * Tampilkan daftar SPK
      */
     public function index()
-    {
-        return Inertia::render('Production/Index', [
-            'orders' => ProductionOrder::with('product')
-                ->latest()
-                ->get(),
+{
+    $orders = ProductionOrder::with([
+        'product.boms.material'
+    ])->latest()->get();
 
-            'products' => Product::all(),
-        ]);
-    }
+    return Inertia::render('Production/Index', [
+        'orders' => $orders,
+        'products' => Product::all(),
+    ]);
+}
 
     /**
      * Simpan SPK baru

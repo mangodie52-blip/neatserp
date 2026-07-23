@@ -105,18 +105,20 @@ export default function Index({ requests }) {
 
                                     {/* NO SPK */}
                                     <td className="p-3 text-center font-semibold whitespace-nowrap">
-                                        {mr.production_order?.nomor_spk ?? '-'}
+                                        {mr.production_order?.nomor_spk || mr.productionOrder?.nomor_spk || '-'}
                                     </td>
 
                                     {/* PRODUK */}
                                     <td className="p-3 text-center font-semibold whitespace-nowrap">
-                                        {mr.production_order?.product?.nama ?? '-'}
+                                        {mr.production_order?.product?.nama ||
+                                            mr.productionOrder?.product?.nama ||
+                                            '-'}
                                     </td>
 
                                     {/* JUMLAH ITEM / MATERIAL */}
                                     <td className="p-3 text-center relative">
 
-                                        {mr.status === 'Approved' ? (
+                                        {['Approved', 'Issued'].includes(mr.status) ? (
 
                                             <>
 
@@ -130,6 +132,7 @@ export default function Index({ requests }) {
                                                 >
                                                     {mr.details_count} Material
                                                 </button>
+                                                
 
                                                 {openMaterials === mr.id && (
                                                     <div
@@ -156,6 +159,9 @@ export default function Index({ requests }) {
                                                                     <span className="text-gray-700 font-semibold">
                                                                         {Number(d.qty_approved || 0).toLocaleString('id-ID')} {d.satuan}
                                                                     </span>
+
+
+
 
                                                                 </div>
                                                             ))}
@@ -223,6 +229,11 @@ export default function Index({ requests }) {
                                             {mr.status === 'Rejected' && (
                                                 <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
                                                     Rejected
+                                                </span>
+                                            )}
+                                            {mr.status === 'Issued' && (
+                                                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    Issued
                                                 </span>
                                             )}
 

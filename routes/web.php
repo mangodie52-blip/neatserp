@@ -11,6 +11,8 @@ use App\Http\Controllers\ProductionOrderController;
 use App\Http\Controllers\GudangController;
 use App\Http\Controllers\MaterialRequestController;
 use App\Http\Controllers\OperationCenterController;
+use App\Http\Controllers\MaterialIssueController;
+use App\Http\Controllers\ProductionProgressController;
 
 
 Route::get('/', function () {
@@ -113,6 +115,28 @@ Route::middleware(['auth'])->group(function () {
         '/material-requests/{materialRequest}/cancel',
         [MaterialRequestController::class, 'cancel']
     )->name('material-requests.cancel');
+
+
+
+    Route::post(
+        '/material-requests/{materialRequest}/issue',
+        [MaterialIssueController::class, 'store']
+    )->name('material-issues.store');
 });
+
+Route::post(
+    '/material-requests/{materialRequest}/reject',
+    [MaterialRequestController::class, 'reject']
+)->name('material-requests.reject');
+
+Route::get('/production-progresses', [ProductionProgressController::class, 'index'])
+    ->name('production-progresses.index');
+
+Route::post('/production-progresses', [ProductionProgressController::class, 'store'])
+    ->name('production-progresses.store');
+
+//exel
+Route::get('/production-progresses/export-csv', [ProductionProgressController::class, 'exportCsv'])
+    ->name('production-progresses.export-csv');
 
 require __DIR__ . '/auth.php';

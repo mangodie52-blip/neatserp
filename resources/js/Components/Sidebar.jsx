@@ -76,11 +76,19 @@ export default function Sidebar() {
                     </h3>
                 </div>
 
+
                 <Link
                     href="/production-orders"
                     className={menuClass("/production-orders")}
                 >
                     🏭 SPK Produksi
+                </Link>
+
+                <Link
+                    href={route('production-progresses.index')}
+                    className="block px-4 py-2 rounded hover:bg-slate-700"
+                >
+                    📈 Progress Produksi
                 </Link>
 
                 {/* GUDANG */}
@@ -96,6 +104,9 @@ export default function Sidebar() {
                 >
                     📦 Material Request
                 </Link>
+
+                {/* QC */}
+
 
             </nav>
 

@@ -1,6 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 
+
 export default function Detail() {
 
     const { mr, flash = {} } = usePage().props;
@@ -115,7 +116,7 @@ export default function Detail() {
 
                         <ul className="list-disc pl-5">
 
-                            {shortageItems.map((item)=>(
+                            {shortageItems.map((item) => (
 
                                 <li key={item.id}>
 
@@ -154,7 +155,7 @@ export default function Detail() {
                     Material Request
 
                 </h1>
-                                <div className="bg-white p-5 rounded shadow">
+                <div className="bg-white p-5 rounded shadow">
 
 
                     {/* =========================
@@ -385,6 +386,7 @@ export default function Detail() {
                                                 )}
 
 
+
                                             </td>
 
 
@@ -496,7 +498,7 @@ export default function Detail() {
 
 
                     </div>
-                                        {/* =========================
+                    {/* =========================
                         CATATAN
                     ========================= */}
 
@@ -531,29 +533,48 @@ export default function Detail() {
                         {(mr.status === 'Waiting Approval' ||
                             mr.status === 'Pending') && (
 
+                                <button
+                                    onClick={() => approve(mr.id)}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition"
+                                >
+
+                                    ✅ Approve
+
+                                </button>
+
+                            )}
+
+                        {mr.status === 'Waiting Approval' && (
                             <button
-                                onClick={() => approve(mr.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition"
+                                onClick={() => {
+                                    const reason = prompt('Alasan reject material request:');
+
+                                    if (reason && reason.trim() !== '') {
+                                        router.post(route('material-requests.reject', mr.id), {
+                                            reason,
+                                        });
+                                    }
+                                }}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold"
                             >
-
-                                ✅ Approve
-
+                                ❌ Reject
                             </button>
-
                         )}
 
+                        {(mr.status === 'Approved' || mr.status === 'Partial') && (
+                            <button
+                                onClick={() => {
+                                    if (confirm('Keluarkan material dari gudang?')) {
+                                        router.post(route('material-issues.store', mr.id));
+                                    }
+                                }}
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold"
+                            >
+                                📦 Keluarkan Material
+                            </button>
+                        )}
 
-
-                        <button
-
-                            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition"
-
-                        >
-
-                            ❌ Reject
-
-                        </button>
-
+                      
 
 
                         <a

@@ -680,14 +680,7 @@ export default function Index() {
                             </div>
 
                             <div className="flex gap-2">
-
-                                <button
-                                    onClick={sendToGudang}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded"
-                                >
-                                    📦 Send To Gudang
-                                </button>
-
+                                
                                 <button
                                     type="button"
                                     onClick={() => {
