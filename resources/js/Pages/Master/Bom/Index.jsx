@@ -79,6 +79,30 @@ export default function Index() {
 
         });
 
+        router.post(
+            route('material-requests.store'),
+            {
+                production_order_id: selectedProductionOrder,
+                product_id: selectedProduct,
+                qty_produksi: qtyProduksi,
+                boms: calculatedBoms,
+            },
+            {
+                preserveScroll: true,
+
+                onSuccess: () => {
+                    alert('✅ Material Request berhasil dikirim ke Gudang.');
+                    setShowAutoBom(false);
+                    setQtyProduksi('');
+                },
+
+                onError: (errors) => {
+                    console.log(errors);
+                    alert('❌ Gagal mengirim Material Request. Cek console.');
+                }
+            }
+        );
+
     };
 
     // =========================
@@ -116,51 +140,57 @@ export default function Index() {
     // SEND TO GUDANG
     // =========================
 
+    router.post(
+        route("production-orders.store"),
+        data,
+        {
+            onSuccess: () => {
+
+                // reset form
+                setData({
+                    nomor_spk: "",
+                    product_id: "",
+                    qty: "",
+                    tanggal: new Date().toISOString().slice(0, 10),
+                    status: "Draft",
+                    send_to_gudang: true,
+                });
+
+                onClose();
+            },
+        }
+    );
+
     const sendToGudang = () => {
 
         if (!selectedProduct) {
-            alert('Silakan pilih produk.');
+            alert('Pilih product terlebih dahulu.');
             return;
         }
 
-        if (!qtyProduksi || qtyProduksi <= 0) {
+        if (!qtyProduksi || Number(qtyProduksi) <= 0) {
             alert('Masukkan Qty Produksi.');
             return;
         }
 
-        const formatNumber = (num) => {
-            return parseFloat(num || 0).toString();
-        };
-
-        // hitung ulang dan kirim hasil decimal
+        // hitung kebutuhan berdasarkan BOM
         const calculatedBoms = selectedBoms.map((bom) => {
 
             const qty = Number(qtyProduksi);
-
             const kebutuhan = Number(bom.kebutuhan || 0);
-
             const waste = Number(bom.waste || 0);
 
-            const isiKemasan = Number(
-                bom.material?.isi_kemasan || 1
-            );
-
-            const kemasan =
-                isiKemasan <= 0 ? 1 : isiKemasan;
-
-            const qtyRequest =
-                (
-                    kebutuhan *
-                    qty *
-                    (1 + waste / 100)
-                ) / kemasan;
+            // total kebutuhan produksi
+            const total =
+                kebutuhan *
+                qty *
+                (1 + waste / 100);
 
             return {
                 material_id: bom.material_id,
-                qty_request: Number(qtyRequest.toFixed(4)),
-                satuan: bom.satuan,
+                qty_request: Number(total.toFixed(4)),
+                satuan: bom.satuan, // ✅ SATUAN DARI BOM
             };
-
         });
 
         router.post(
@@ -174,8 +204,15 @@ export default function Index() {
                 preserveScroll: true,
 
                 onSuccess: () => {
-                    alert('Material Request berhasil dikirim.');
+                    alert('✅ Material Request berhasil dikirim ke Gudang.');
+                    setShowAutoBom(false);
+                    setQtyProduksi('');
                 },
+
+                onError: (errors) => {
+                    console.log(errors);
+                    alert('❌ Gagal mengirim Material Request. Cek console.');
+                }
             }
         );
     };
@@ -533,6 +570,7 @@ export default function Index() {
                                 <input
                                     type="number"
                                     min="0"
+                                    step="0.0001"
                                     value={data.kebutuhan}
                                     onChange={(e) =>
                                         setData({
@@ -541,7 +579,7 @@ export default function Index() {
                                         })
                                     }
                                     className="w-full border rounded-lg p-2"
-                                    placeholder="Material Per PCS"
+                                    placeholder=""
                                     required
                                 />
 
@@ -566,7 +604,7 @@ export default function Index() {
                                         })
                                     }
                                     className="w-full border rounded-lg p-2"
-                                    placeholder="Contoh : 2"
+                                    placeholder=""
                                     required
                                 />
 
@@ -757,7 +795,7 @@ export default function Index() {
                                                     </div>
                                                 </td>
 
-                                                {/* Satuan BOM */}
+                                                {/* Kebutuhan per PCS */}
                                                 <td className="border border-gray-300 px-6 py-5 text-center align-middle">
                                                     <div className="font-medium text-base">
                                                         {formatNumber(bom.kebutuhan)} {bom.satuan}
@@ -773,7 +811,7 @@ export default function Index() {
 
                                                 {/* Total kebutuhan */}
                                                 <td className="border border-gray-300 px-6 py-5 text-center align-middle">
-                                                    <div className="font-bold text-lg text-black-700">
+                                                    <div className="font-bold text-lg text-blue-700">
                                                         {qty > 0
                                                             ? `${formatNumber(total)} ${bom.satuan}`
                                                             : '-'}
@@ -781,7 +819,6 @@ export default function Index() {
                                                 </td>
 
                                             </tr>
-
                                         );
 
                                     })

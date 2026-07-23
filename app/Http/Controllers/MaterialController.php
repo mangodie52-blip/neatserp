@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\MaterialRequest;
 
 class MaterialController extends Controller
+
 {
     public function index()
     {
@@ -25,7 +26,6 @@ class MaterialController extends Controller
             'satuan' => 'required',
             'stok' => 'required|integer|min:0',
             'stok_minimum' => 'required|integer|min:0',
-            'harga' => 'required|numeric',
         ]);
 
         Material::create($validated);
@@ -47,5 +47,5 @@ class MaterialController extends Controller
         return back();
     }
 
-  
+    
 }

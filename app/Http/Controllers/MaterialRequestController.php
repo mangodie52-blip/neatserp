@@ -13,34 +13,64 @@ use App\Models\ActivityLog;
 
 class MaterialRequestController extends Controller
 {
-
-
-    public function index()
-    {
-        $requests = MaterialRequest::with([
-            'productionOrder.product',
-            'details.material'
-        ])
-            ->where('status', '!=', 'Cancelled')
-            ->latest()
-            ->get();
-
-        return Inertia::render('Gudang/MaterialRequest/Index', [
-            'requests' => $requests,
+   public function index()
+{
+    MaterialRequest::where('status', 'Waiting Approval')
+        ->where('created_at', '<=', now()->subHours(8))
+        ->update([
+            'status' => 'Pending'
         ]);
-    }
+
+    $requests = MaterialRequest::with([
+        'productionOrder.product',
+        'details.material'
+    ])
+    ->withCount('details')
+    ->where('status', '!=', 'Cancelled')
+    ->latest()
+    ->get();
+
+    $requests->transform(function ($mr) {
+
+        $mr->material_ready_count = $mr->details
+            ->where('qty_approved', '>', 0)
+            ->count();
+
+        $materials = $mr->details
+            ->pluck('material.nama')
+            ->filter()
+            ->values();
+
+        $mr->material_preview = match (true) {
+            $materials->count() === 0 => '-',
+            $materials->count() === 1 => $materials[0],
+            $materials->count() === 2 => $materials[0] . ', ' . $materials[1],
+            default => $materials[0] . ' + ' . ($materials->count() - 1) . ' material lainnya',
+        };
+
+        return $mr;
+    });
+
+    return Inertia::render('Gudang/MaterialRequest/Index', [
+        'requests' => $requests,
+    ]);
+}
+
 
     public function store(Request $request)
     {
         $request->validate([
-            'product_id'    => 'required|exists:products,id',
-            'qty_produksi'  => 'required|numeric|min:0.0001',
-            'boms'          => 'required|array|min:1',
+    'boms.*.material_id' => 'required|exists:materials,id',
+    'boms.*.qty_request' => 'required|numeric|min:0.0001',
+    'boms.*.satuan'      => 'required|string',
 
-            'boms.*.material_id' => 'required|exists:materials,id',
-            'boms.*.qty_request' => 'required|numeric|min:0.0001',
-            'boms.*.satuan'      => 'required|string',
-        ]);
+    // ubah required menjadi nullable
+    'production_order_id' => 'nullable|exists:production_orders,id',
+
+    'product_id'          => 'required|exists:products,id',
+    'qty_produksi'        => 'required|numeric|min:0.0001',
+    'boms'                => 'required|array|min:1',
+]);
 
         DB::beginTransaction();
 
@@ -48,10 +78,9 @@ class MaterialRequestController extends Controller
 
             // =========================
             // GENERATE NOMOR MR
-            // Format: MR-250721-001
+            // Format: MR-260721-001
             // =========================
-
-            $tanggal = now()->format('ymd'); // 250721
+            $tanggal = now()->format('ymd');
 
             $lastMr = MaterialRequest::whereDate('created_at', today())
                 ->latest('id')
@@ -62,22 +91,15 @@ class MaterialRequestController extends Controller
                 : 1;
 
             $nomorMr = 'MR-' . $tanggal . '-' . str_pad($urutan, 3, '0', STR_PAD_LEFT);
-
             // =========================
             // HEADER MATERIAL REQUEST
             // =========================
             $mr = MaterialRequest::create([
-
-                'nomor_mr'           => 'MR-' . now()->format('YmdHis'),
-
-                'production_order_id' => null,
-
-                'tanggal'            => now(),
-
-                'status'             => 'Waiting Approval',
-
-                'created_by'         => auth()->id(),
-
+                'nomor_mr'            => $nomorMr,
+                'production_order_id' => $request->production_order_id,
+                'tanggal'             => now(),
+                'status'              => 'Waiting Approval',
+                'created_by'          => auth()->id(),
             ]);
 
 
@@ -87,42 +109,25 @@ class MaterialRequestController extends Controller
             foreach ($request->boms as $bom) {
 
                 MaterialRequestDetail::create([
-
                     'material_request_id' => $mr->id,
-
                     'material_id'         => $bom['material_id'],
-
-                    // hasil final dari React (sudah decimal)
                     'qty_request'         => round((float) $bom['qty_request'], 4),
-
                     'qty_approved'        => 0,
-
-                    // satuan mengikuti BOM
-                    'satuan'              => $bom['satuan'],
-
+                    'satuan'              => $bom['satuan'], // WAJIB
                 ]);
             }
-
-
             // =========================
             // ACTIVITY LOG
             // =========================
             ActivityLog::create([
-
                 'user_id'        => auth()->id(),
-
                 'module'         => 'Material Request',
-
                 'action'         => 'CREATE',
-
                 'reference_type' => 'MaterialRequest',
-
                 'reference_id'   => $mr->id,
-
+                'activity'       => 'Create Material Request',
                 'description'    => 'MR baru dari Produksi - ' . $mr->nomor_mr,
-
                 'ip_address'     => $request->ip(),
-
             ]);
 
 
@@ -140,162 +145,137 @@ class MaterialRequestController extends Controller
                 'message' => $e->getMessage(),
                 'line'    => $e->getLine(),
                 'file'    => $e->getFile(),
+                'request' => $request->all(),
             ]);
         }
     }
 
+    // TAMBAHKAN DI SINI
     public function show(MaterialRequest $materialRequest)
     {
-
-        $materialRequest->load(
+        $materialRequest->load([
+            'productionOrder.product',
             'details.material'
-        );
+        ]);
 
-
-        return Inertia::render(
-            'Gudang/MaterialRequest/Detail',
-            [
-                'mr' => $materialRequest
-            ]
-        );
-
-        $materialRequest->load('details.material');
-
-        return Inertia::render('Gudang/MaterialRequest/Show', [
-            'materialRequest' => $materialRequest,
+        return Inertia::render('Gudang/MaterialRequest/Detail', [
+            'mr' => $materialRequest
         ]);
     }
 
-    public function cancel(MaterialRequest $materialRequest)
-    {
-        // ubah status jadi Cancelled (history tetap ada)
-        $materialRequest->update([
-            'status' => 'Cancelled',
-        ]);
-
-        // simpan activity log
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'module' => 'Material Request',
-            'action' => 'CANCEL',
-            'reference_type' => 'MaterialRequest',
-            'reference_id' => $materialRequest->id,
-            'description' => 'MR dibatalkan - ' . $materialRequest->nomor_mr,
-            'ip_address' => request()->ip(),
-        ]);
-
-        return redirect()
-            ->route('material-requests.index')
-            ->with('success', 'Material Request berhasil dibatalkan.');
-    }
-
-    // print
     public function print($id)
-    {
-        $request = MaterialRequest::with([
-            'details.material',
-            'productionOrder'
-        ])->findOrFail($id);
+{
+    $mr = MaterialRequest::with([
+        'productionOrder.product',
+        'details.material',
+        'creator',
+        'approver'
+    ])->findOrFail($id);
 
-        return view(
-            'material_requests.print',
-            compact('request')
-        );
-    }
+    return view('material_requests.print', compact('mr'));
+}
 
 
     public function approve(MaterialRequest $materialRequest)
     {
-
         DB::transaction(function () use ($materialRequest) {
 
+            // LOAD RELASI
+            $materialRequest->load('details.material');
 
-            // hanya pending yang boleh approve
-            if ($materialRequest->status !== 'Waiting Approval') {
-                return;
-            }
-
+            $pendingItems = [];
 
             foreach ($materialRequest->details as $detail) {
 
-                $material = Material::find(
-                    $detail->material_id
-                );
+                $material = $detail->material;
 
+                // qty request
+                $requestQty = (float) $detail->qty_request;
 
-                if (!$material) {
-                    continue;
+                // konversi CM ke meter
+                $requestDalamMeter = strtoupper($detail->satuan) === 'CM'
+                    ? $requestQty / 100
+                    : $requestQty;
+
+                // stok fisik (roll)
+                $stokFisik = (float) $material->stok;
+
+                // isi per roll (meter)
+                $isiKemasan = (float) ($material->isi_kemasan ?? 1);
+
+                // total meter tersedia
+                $stokTersedia = $stokFisik * $isiKemasan;
+
+                // =========================
+                // STOK CUKUP
+                // =========================
+                if ($stokTersedia >= $requestDalamMeter) {
+
+                    $rollTerpakai = $requestDalamMeter / $isiKemasan;
+
+                    $material->update([
+                        'stok' => round($stokFisik - $rollTerpakai, 4),
+                    ]);
+
+                    $detail->update([
+                        'qty_approved' => round($requestQty, 4),
+                    ]);
+                } else {
+
+                    // =========================
+                    // STOK KURANG
+                    // =========================
+
+                    $approvedMeter = max($stokTersedia, 0);
+
+                    $remainingMeter = $requestDalamMeter - $approvedMeter;
+
+                    // stok habis
+                    $material->update([
+                        'stok' => 0,
+                    ]);
+
+                    // kembalikan ke satuan asli
+                    $approvedQty = strtoupper($detail->satuan) === 'CM'
+                        ? $approvedMeter * 100
+                        : $approvedMeter;
+
+                    $remainingQty = strtoupper($detail->satuan) === 'CM'
+                        ? $remainingMeter * 100
+                        : $remainingMeter;
+
+                    $detail->update([
+                        'qty_approved' => round($approvedQty, 4),
+                    ]);
+
+                    $pendingItems[] = [
+                        'material_id' => $material->id,
+                        'qty_request' => round($remainingQty, 4),
+                        'satuan'      => $detail->satuan,
+                    ];
                 }
-
-
-                // potong stok gudang
-                $material->stok -= $detail->qty_request;
-
-                $material->save();
-
-
-
-                // update jumlah approve
-
-                $detail->update([
-
-                    'qty_approved' => $detail->qty_request
-
-                ]);
             }
 
-
-
-            // update header MR
-
+            // UPDATE STATUS
             $materialRequest->update([
-
-                'status' => 'Approved',
-
+                'status'      => count($pendingItems) ? 'Partial' : 'Approved',
                 'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
 
-                'approved_at' => now()
-
+            // ACTIVITY LOG
+            ActivityLog::create([
+                'user_id'        => auth()->id(),
+                'module'         => 'Material Request',
+                'action'         => 'APPROVE',
+                'reference_type' => 'MaterialRequest',
+                'reference_id'   => $materialRequest->id,
+                'activity'       => 'Approve Material Request',
+                'description'    => 'Approve MR ' . $materialRequest->nomor_mr,
+                'ip_address'     => request()->ip(),
             ]);
         });
 
-
-
-
-
-
-        return redirect()
-            ->route(
-                'material-requests.show',
-                $materialRequest->id
-            );
-    }
-
-    public function reject(MaterialRequest $materialRequest)
-    {
-        // hanya bisa reject jika masih pending
-        if ($materialRequest->status !== 'Pending') {
-
-            return back()->with('error', 'MR sudah diproses.');
-        }
-
-        $materialRequest->update([
-            'status' => 'Rejected',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-        ]);
-
-        // simpan activity
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'module' => 'Material Request',
-            'action' => 'REJECT',
-            'reference_type' => 'MaterialRequest',
-            'reference_id' => $materialRequest->id,
-            'description' => 'MR ditolak - ' . $materialRequest->nomor_mr,
-            'ip_address' => request()->ip(),
-        ]);
-
-        return back()->with('success', 'Material Request berhasil ditolak.');
+        return back()->with('success', 'Material Request berhasil diproses');
     }
 }

@@ -10,23 +10,17 @@ class MaterialRequestDetail extends Model
         'material_request_id',
         'material_id',
         'qty_request',
-        'qty_approved'
+        'qty_approved',
+        'satuan', // 🔥 WAJIB ADA
     ];
-
-    protected $casts = [
-
-        'qty_request' => 'integer',
-        'qty_approved' => 'integer',
-
-    ];
-
-    public function materialRequest()
-    {
-        return $this->belongsTo(MaterialRequest::class);
-    }
 
     public function material()
     {
         return $this->belongsTo(Material::class);
+    }
+
+    public function materialRequest()
+    {
+        return $this->belongsTo(MaterialRequest::class);
     }
 }

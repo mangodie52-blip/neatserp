@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { router } from "@inertiajs/react";
-import PrimaryButton from "@/Components/PrimaryButton";
-import DangerButton from "@/Components/DangerButton";
 
 export default function ProductionForm({
     show,
-    onClose,
     products,
-    order = null,
-    }) {
+    order,
+    onClose
+}) {
 
     const [data, setData] = useState({
         nomor_spk: "",
@@ -16,63 +14,83 @@ export default function ProductionForm({
         qty: "",
         tanggal: "",
         status: "Draft",
+        send_to_gudang: true,
     });
 
+    const initialState = {
+        nomor_spk: "",
+        product_id: "",
+        qty: "",
+        tanggal: "", // kosong
+        status: "Draft",
+        send_to_gudang: true,
+    };
+    const resetForm = () => setData(initialState);
+
+    // isi form saat edit
     useEffect(() => {
 
-        if (order) {
+        if (show) {
 
-            setData({
-                nomor_spk: order.nomor_spk,
-                product_id: order.product_id,
-                qty: order.qty,
-                tanggal: order.tanggal,
-                status: order.status,
-            });
+            if (order) {
 
-        } else {
+                setData({
+                    nomor_spk: order.nomor_spk || "",
+                    product_id: order.product_id || "",
+                    qty: order.qty || "",
+                    tanggal: order.tanggal || "",
+                    status: order.status || "Draft",
+                    send_to_gudang: true,
+                });
 
-            setData({
-                nomor_spk: "",
-                product_id: "",
-                qty: "",
-                tanggal: "",
-                status: "Draft",
-            });
+            } else {
 
+                resetForm(); // kosong + tanggal hari ini
+
+            }
         }
 
-    }, [order]);
+    }, [show, order]);
 
+    if (!show) return null;
+
+    // simpan / update
     const submit = (e) => {
 
         e.preventDefault();
 
         if (order) {
 
-            router.put(`/production-orders/${order.id}`, data, {
-                onSuccess: () => onClose(),
-            });
+            router.put(
+                route("production-orders.update", order.id),
+                data,
+                {
+                    onSuccess: () => onClose(),
+                }
+            );
 
         } else {
 
-            router.post("/production-orders", data, {
-                onSuccess: () => onClose(),
-            });
+            router.post(
+                route("production-orders.store"),
+                data,
+                {
+                    onSuccess: () => onClose(),
+                }
+            );
 
         }
 
     };
 
-    if (!show) return null;
 
     return (
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6">
+            <div className="bg-white rounded-xl shadow-xl w-[560px] p-6">
 
-                <h2 className="text-xl font-bold mb-6">
+                <h2 className="text-2xl font-bold mb-5">
 
                     {order ? "Edit SPK" : "Tambah SPK"}
 
@@ -80,105 +98,173 @@ export default function ProductionForm({
 
                 <form onSubmit={submit} className="space-y-4">
 
-                    <input
-                        type="text"
-                        placeholder="Nomor SPK"
-                        value={data.nomor_spk}
-                        onChange={(e) =>
-                            setData({
-                                ...data,
-                                nomor_spk: e.target.value,
-                            })
-                        }
-                        className="w-full border rounded-lg p-2"
-                    />
+                    {/* No SPK */}
+                    <div>
+                        <label className="block font-semibold mb-2">
+                            No SPK
+                        </label>
 
-                    <select
-                        value={data.product_id}
-                        onChange={(e) =>
-                            setData({
-                                ...data,
-                                product_id: e.target.value,
-                            })
-                        }
-                        className="w-full border rounded-lg p-2"
-                    >
+                        <input
+                            type="text"
+                            value={data.nomor_spk}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    nomor_spk: e.target.value
+                                })
+                            }
+                            className="w-full border rounded-lg p-3"
+                            placeholder="SPK-001"
+                            required
+                        />
+                    </div>
 
-                        <option value="">
-                            Pilih Product
-                        </option>
+                    {/* Product */}
+                    <div>
+                        <label className="block font-semibold mb-2">
+                            Product
+                        </label>
 
-                        {products.map((product) => (
+                        <select
+                            value={data.product_id}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    product_id: e.target.value
+                                })
+                            }
+                            className="w-full border rounded-lg p-3"
+                            required
+                        >
 
-                            <option
-                                key={product.id}
-                                value={product.id}
-                            >
-                                {product.nama}
+                            <option value="">
+                                Pilih Product
                             </option>
 
-                        ))}
+                            {products.map((p) => (
 
-                    </select>
+                                <option key={p.id} value={p.id}>
+                                    {p.nama}
+                                </option>
 
-                    <input
-                        type="number"
-                        placeholder=" Jumlah Permin
-                        
-                        taan Yg Di Inginkan"
-                        value={data.qty}
-                        onChange={(e) =>
-                            setData({
-                                ...data,
-                                qty: e.target.value,
-                            })
-                        }
-                        className="w-full border rounded-lg p-2"
-                    />
+                            ))}
 
-                    <input
-                        type="date"
-                        value={data.tanggal}
-                        onChange={(e) =>
-                            setData({
-                                ...data,
-                                tanggal: e.target.value,
-                            })
-                        }
-                        className="w-full border rounded-lg p-2"
-                    />
+                        </select>
+                    </div>
 
-                    <select
-                        value={data.status}
-                        onChange={(e) =>
-                            setData({
-                                ...data,
-                                status: e.target.value,
-                            })
-                        }
-                        className="w-full border rounded-lg p-2"
-                    >
+                    {/* Qty */}
+                    <div>
+                        <label className="block font-semibold mb-2">
+                            Qty Produksi
+                        </label>
 
-                        <option>Draft</option>
-                        <option>Proses</option>
-                        <option>Selesai</option>
+                        <input
+                            type="number"
+                            min="1"
+                            value={data.qty}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    qty: e.target.value
+                                })
+                            }
+                            className="w-full border rounded-lg p-3"
+                            placeholder="100"
+                            required
+                        />
+                    </div>
 
-                    </select>
+                    {/* Tanggal */}
+                    <div>
+                        <label className="block font-semibold mb-2">
+                            Tanggal
+                        </label>
 
-                    <div className="flex justify-end gap-2">
+                        <input
+                            type="date"
+                            value={data.tanggal}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    tanggal: e.target.value
+                                })
+                            }
+                            className="w-full border rounded-lg p-3"
+                            required
+                        />
+                    </div>
 
-                        <DangerButton
+                    {/* Status saat edit */}
+                    {order && (
+                        <div>
+                            <label className="block font-semibold mb-2">
+                                Status
+                            </label>
+
+                            <select
+                                value={data.status}
+                                onChange={(e) =>
+                                    setData({
+                                        ...data,
+                                        status: e.target.value
+                                    })
+                                }
+                                className="w-full border rounded-lg p-3"
+                            >
+                                <option value="Draft">Draft</option>
+                                <option value="Planning">Planning</option>
+                                <option value="Produksi">Produksi</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Cancel">Cancel</option>
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Auto MR */}
+                    {!order && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <label className="flex items-center gap-3">
+
+                                <input
+                                    type="checkbox"
+                                    checked={data.send_to_gudang}
+                                    onChange={(e) =>
+                                        setData({
+                                            ...data,
+                                            send_to_gudang: e.target.checked
+                                        })
+                                    }
+                                />
+
+                                <span className="font-medium text-blue-800">
+                                    Langsung buat Material Request ke Gudang
+                                </span>
+
+                            </label>
+                        </div>
+                    )}
+
+                    {/* Button */}
+                    <div className="flex justify-end gap-3 pt-3">
+
+                        <button
                             type="button"
-                            onClick={onClose}
+                            onClick={() => {
+                                resetForm();
+                                onClose();
+                            }}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-lg"
                         >
                             Batal
-                        </DangerButton>
+                        </button>
 
-                        <PrimaryButton
+                        <button
                             type="submit"
+
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
                         >
-                            Simpan
-                        </PrimaryButton>
+                            {order ? "Update SPK" : "Simpan SPK"}
+                        </button>
 
                     </div>
 
@@ -189,5 +275,4 @@ export default function ProductionForm({
         </div>
 
     );
-
 }

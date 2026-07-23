@@ -1,13 +1,14 @@
 CARA INSTALL PROJECT NEATS DI PC ATAU LAPTOP
 
 
+
 1. Install kebutuhan dulu di PC baru
 
 Pastikan ada:
 
 ✅ PHP 8.2
-✅ Composer
-✅ Node.js + npm
+✅ Composer version 2.10.2  + Laravel Installer 5.30.0
+✅ Node.js v24.18.0 + npm
 ✅ MySQL (atau XAMPP)
 ✅ Git
 
@@ -40,8 +41,7 @@ vendor/
 Jalankan:
 npm install
 Ini membuat:
-node_modules/
-
+node\_modules/
 5. Buat file .env
 
 Karena .env tidak masuk GitHub (dan memang harus begitu), buat dari contoh:
@@ -60,18 +60,17 @@ Lalu edit:
 .env
 Bagian ini:
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=neatserp
-DB_USERNAME=root
-DB_PASSWORD=
+DB\_CONNECTION=mysql
+DB\_HOST=127.0.0.1
+DB\_PORT=3306
+DB\_DATABASE=neatserp
+DB\_USERNAME=root
+DB\_PASSWORD=
 
 Sesuaikan password MySQL PC tersebut.
 
 7. Generate key Laravel
 php artisan key:generate
-
 8. Buat tabel database
 
 Karena kita pakai migration:
@@ -97,3 +96,4 @@ npm run dev
 10. Login
 Buka:
 http://127.0.0.1:8000
+

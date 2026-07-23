@@ -23,7 +23,7 @@ export default function ProductionTable({
                         No SPK
                     </th>
 
-                    <th className="px-4 py-3 text-left">
+                    <th className="px-4 py-3 text-center w-40">
                         Product
                     </th>
 
@@ -42,6 +42,7 @@ export default function ProductionTable({
                     <th className="px-4 py-3 text-center w-72">
                         Aksi
                     </th>
+                    
 
                 </tr>
 
@@ -49,69 +50,88 @@ export default function ProductionTable({
 
             <tbody>
 
-                {orders.map((order) => (
+                {orders && orders.length > 0 ? (
 
-                    <tr
-                        key={order.id}
-                        className="border-b hover:bg-slate-50 transition"
-                    >
+                    orders.map((order) => (
 
-                        <td className="px-4 py-3 text-center">
-                            {order.nomor_spk}
-                        </td>
+                        <tr
+                            key={order.id}
+                            className="border-b hover:bg-slate-50 transition"
+                        >
 
-                        <td className="px-4 py-3">
-                            {order.product?.nama}
-                        </td>
+                            <td className="px-4 py-3 text-center">
+                                {order.nomor_spk}
+                            </td>
 
-                        <td className="px-4 py-3 text-center">
-                            {order.qty}
-                        </td>
+                            <td className="px-4 py-3 text-center">
+                                {order.product?.nama ?? '-'}
+                            </td>
 
-                        <td className="px-4 py-3 text-center">
-                            {order.tanggal}
-                        </td>
+                            <td className="px-4 py-3 text-center">
+                                {order.qty}
+                            </td>
 
-                        <td className="px-4 py-3 text-center">
-                            <Badge color="green">
-                                {order.status}
-                            </Badge>
-                        </td>
+                            <td className="px-4 py-3 text-center">
+                                {order.tanggal}
+                            </td>
 
-                        <td className="px-3 py-1 rounded">
+                            <td className="px-4 py-3 text-center">
 
-                            <div className="flex justify-center gap-2">
+                                <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                    {order.status}
+                                </span>
 
-                                <SecondaryButton
-                                    onClick={() => onEdit(order)}
-                                >
-                                    Edit
-                                </SecondaryButton>
+                            </td>
 
-                                <DangerButton
-                                    onClick={() => {
+                            <td className="px-3 py-1">
 
-                                        if (confirm("Hapus SPK ini?")) {
+                                <div className="flex justify-center gap-2">
 
-                                            router.delete(`/production-orders/${order.id}`);
-
-                                        }
-
-                                    }}
-
-                                    className="hover:bg-blue-600 text-black px-3 py-1 rounded"
-                                >
-                                    Hapus
-                                </DangerButton>
+                                    <SecondaryButton
+                                        onClick={() => onEdit(order)}
+                                    >
+                                        Edit
+                                    </SecondaryButton>
 
 
-                            </div>
+                                    <DangerButton
+                                        onClick={() => {
+
+                                            if (confirm("Hapus SPK ini?")) {
+                                                router.delete(
+                                                    `/production-orders/${order.id}`
+                                                );
+                                            }
+
+                                        }}
+                                    >
+                                        Hapus
+                                    </DangerButton>
+
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    ))
+
+                ) : (
+
+                    <tr>
+
+                        <td
+                            colSpan="6"
+                            className="text-center py-8 text-gray-500"
+                        >
+                            Belum ada SPK Produksi
 
                         </td>
 
                     </tr>
 
-                ))}
+                )}
 
             </tbody>
 

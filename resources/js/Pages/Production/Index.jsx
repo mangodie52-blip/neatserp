@@ -8,7 +8,7 @@ import PrimaryButton from "@/Components/PrimaryButton";
 export default function Index() {
 
     const { orders, products } = usePage().props;
-
+    console.log("ORDERS SPK :", orders);
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 

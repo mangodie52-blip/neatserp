@@ -3,6 +3,15 @@ import { router, usePage, Link } from '@inertiajs/react';
 
 export default function Show() {
 
+    const statusClass = {
+        'Waiting Approval': 'bg-blue-100 text-blue-700',
+        'Pending': 'bg-yellow-100 text-yellow-700',
+        'Partial': 'bg-orange-100 text-orange-700',
+        'Approved': 'bg-green-100 text-green-700',
+        'Rejected': 'bg-red-100 text-red-700',
+        'Expired': 'bg-gray-100 text-gray-700',
+    };
+
     const { materialRequest } = usePage().props;
 
     return (
@@ -125,42 +134,42 @@ export default function Show() {
                 </div>
 
 
-                                {/* ACTION */}
+                {/* ACTION */}
                 <div className="flex justify-end gap-3 mt-6 border-t pt-5">
 
                     {/* Hanya tampil saat Pending / Waiting Approval */}
                     {(materialRequest.status === 'Pending' ||
-                      materialRequest.status === 'Waiting Approval') && (
-                        <>
+                        materialRequest.status === 'Waiting Approval') && (
+                            <>
 
-                            {/* APPROVE */}
-                            <button
-                                onClick={() =>
-                                    router.post(
-                                        route('material-requests.approve', materialRequest.id)
-                                    )
-                                }
-                                className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold shadow-md transition"
-                            >
-                                ✓ Approve
-                            </button>
-
-                            {/* DELETE / CANCEL */}
-                            <button
-                                onClick={() => {
-                                    if (confirm('Yakin ingin membatalkan Material Request ini?')) {
+                                {/* APPROVE */}
+                                <button
+                                    onClick={() =>
                                         router.post(
-                                            route('material-requests.cancel', materialRequest.id)
-                                        );
+                                            route('material-requests.approve', materialRequest.id)
+                                        )
                                     }
-                                }}
-                                className="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-semibold shadow-md transition"
-                            >
-                                🗑 Delete
-                            </button>
+                                    className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold shadow-md transition"
+                                >
+                                    ✓ Approve
+                                </button>
 
-                        </>
-                    )}
+                                {/* DELETE / CANCEL */}
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Yakin ingin membatalkan Material Request ini?')) {
+                                            router.post(
+                                                route('material-requests.cancel', materialRequest.id)
+                                            );
+                                        }
+                                    }}
+                                    className="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-semibold shadow-md transition"
+                                >
+                                    🗑 Delete
+                                </button>
+
+                            </>
+                        )}
 
                     {/* Kalau sudah Approved */}
                     {materialRequest.status === 'Approved' && (

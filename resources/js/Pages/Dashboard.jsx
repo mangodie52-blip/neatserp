@@ -5,6 +5,9 @@ import RealtimeStatus from "@/Components/RealtimeStatus";
 import { router } from "@inertiajs/react";
 import { useEffect, useRef, useState } from "react";
 
+import ErpPerformanceChart
+    from "@/Components/Charts/ErpPerformanceChart";
+
 export default function Dashboard({
     user,
     totalMaterial,
@@ -15,6 +18,10 @@ export default function Dashboard({
     latestProductions,
     chartData,
     activities,
+    realtime,
+    performance,
+
+
 }) {
 
     // 🔔 state notif
@@ -38,7 +45,7 @@ export default function Dashboard({
         return () => clearInterval(interval);
 
     }, []);
-    
+
     const getIcon = (module) => {
 
         switch (module) {
@@ -361,6 +368,20 @@ export default function Dashboard({
             {/* Produksi Terbaru */}
 
             <div className="grid grid-cols-3 gap-6 mt-6">
+                <div className="bg-white rounded-2xl shadow-lg p-5 mt-6">
+
+
+                    <h2 className="text-lg font-bold mb-4">
+                        📊 ERP Performance Monitor
+                    </h2>
+
+
+                    <ErpPerformanceChart
+                        performance={performance}
+                    />
+
+
+                </div>
 
                 {/* Produksi Terbaru */}
 
@@ -495,7 +516,7 @@ export default function Dashboard({
 
                         </h2>
 
-                        <RealtimeStatus />
+                        <RealtimeStatus realtime={realtime} />
 
                     </div>
 

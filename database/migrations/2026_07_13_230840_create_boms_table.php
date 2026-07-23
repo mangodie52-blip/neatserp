@@ -20,10 +20,21 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->integer('satuan');
-            $table->integer('waste')->default(0);
+            // jumlah kebutuhan material
+            $table->decimal('kebutuhan', 12, 4);
+
+            // satuan material (PCS, Meter, Roll, Kg, dll)
+            $table->string('satuan', 50);
+
+            // toleransi / waste %
+            $table->decimal('waste', 5, 2)->default(0);
 
             $table->timestamps();
         });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('boms');
     }
 };

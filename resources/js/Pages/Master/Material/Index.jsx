@@ -3,6 +3,9 @@ import { useForm } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
 import AppLayout from "@/Layouts/AppLayout";
 import { router } from "@inertiajs/react";
+import PrimaryButton from '@/Components/PrimaryButton';
+import DangerButton from '@/Components/DangerButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 
 
 export default function Index({ materials }) {
@@ -10,6 +13,13 @@ export default function Index({ materials }) {
     const [editMode, setEditMode] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [search, setSearch] = useState('');
+
+    const filteredMaterials = materials.filter((m) =>
+        (m.nama || '').toLowerCase().includes(search.toLowerCase()) ||
+        (m.kode || '').toLowerCase().includes(search.toLowerCase()) ||
+        (m.kategori || '').toLowerCase().includes(search.toLowerCase())
+    );
 
     const {
         data,
@@ -25,7 +35,6 @@ export default function Index({ materials }) {
         satuan: "PCS",
         stok: "",
         stok_minimum: "",
-        harga: "",
     });
 
     const submit = (e) => {
@@ -62,7 +71,6 @@ export default function Index({ materials }) {
             satuan: item.satuan,
             stok: item.stok,
             stok_minimum: item.stok_minimum,
-            harga: item.harga,
         });
 
         setShowModal(true);
@@ -88,93 +96,148 @@ export default function Index({ materials }) {
                         <h1 className="text-3xl font-bold text-gray-800">
                             Master Material
                         </h1>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+                            <div className="bg-white rounded-xl border p-4 shadow-sm">
+                                <p className="text-sm text-gray-500">Total Material</p>
+                                <p className="text-2xl font-bold text-gray-800">
+                                    {materials.length}
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl border p-4 shadow-sm">
+                                <p className="text-sm text-gray-500">Stok Menipis</p>
+                                <p className="text-2xl font-bold text-red-600">
+                                    {materials.filter(m => Number(m.stok) <= Number(m.stok_minimum)).length}
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl border p-4 shadow-sm">
+                                <p className="text-sm text-gray-500">Stok Aman</p>
+                                <p className="text-2xl font-bold text-green-600">
+                                    {materials.filter(m => Number(m.stok) > Number(m.stok_minimum)).length}
+                                </p>
+                            </div>
+
+                        </div>
                         <p className="text-gray-500">
                             Kelola data bahan baku produksi
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
-                    >
+                    <PrimaryButton onClick={() => setShowModal(true)}>
                         + Tambah Material
-                    </button>
+                    </PrimaryButton>
                 </div>
 
                 {/* Search */}
-                <div className="bg-white rounded-xl shadow p-4 mb-5">
-                    <input
-                        type="text"
-                        placeholder="Cari material..."
-                        className="w-full border rounded-lg px-4 py-2"
-                    />
-                </div>
+                <input
+                    type="text"
+                    placeholder="Cari material berdasarkan kode, nama, atau kategori..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+
+
 
                 {/* Table */}
-                <div className="bg-white rounded-xl shadow">
+                <div className="bg-white rounded-xl shadow overflow-x-auto">
+                    <div className="mb-2 text-sm text-red-600 font-bold">
+                        DEBUG: {filteredMaterials.length} material ditemukan
+                    </div>
+                    <table className="min-w-full text-sm">
 
-                    <table className="w-full text-sm text-left">
 
                         <thead className="bg-gray-100">
 
                             <tr>
-
                                 <th className="p-3 text-left">Kode</th>
-                                <th className="p-3 text-left">Nama</th>
+                                <th className="p-3 text-left">Nama Material</th>
                                 <th className="p-3 text-left">Kategori</th>
-                                <th className="p-3 text-center">Stok</th>
                                 <th className="p-3 text-center">Satuan</th>
-                                <th className="p-3 text-right">Harga</th>
+                                <th className="p-3 text-center">Stok</th>
+                                <th className="p-3 text-center">Stok Minimum</th>
+                                <th className="p-3 text-center">Status</th>
                                 <th className="p-3 text-center">Aksi</th>
-
                             </tr>
+
 
                         </thead>
 
 
                         <tbody>
-                            {materials.length === 0 ? (
-                                <tr>
-                                    <td colSpan="7" className="text-center p-8 text-gray-500">
-                                        Belum ada data material
-                                    </td>
-                                </tr>
-                            ) : (
-                                materials.map((item) => (
-                                    <tr key={item.id} className="border-t">
+                            {filteredMaterials.length > 0 ? (
+                                filteredMaterials.map((material) => (
+                                    <tr key={material.id} className="border-t hover:bg-gray-50">
 
-                                        <td className="p-3">{item.kode}</td>
-
-                                        <td className="p-3">{item.nama}</td>
-
-                                        <td className="p-3">{item.kategori}</td>
-
-                                        <td className="p-3 text-center">
-                                            {Math.floor(Number(item.stok))}
+                                        <td className="p-3 font-mono text-sm font-semibold text-gray-700">
+                                            {material.kode}
                                         </td>
 
-                                        <td className="p-3 text-center">{item.satuan}</td>
+                                        <td className="p-3 font-medium text-gray-900">
+                                            {material.nama}
+                                        </td>
 
-                                        <td className="p-3 text-right">
-                                            Rp {Number(item.harga).toLocaleString('id-ID')}
+                                        <td className="p-3 text-gray-700">
+                                            {material.kategori}
                                         </td>
 
                                         <td className="p-3 text-center">
-                                            <button
-                                                onClick={() => editMaterial(item)}
-                                                className="hover:bg-yellow-600 text-black px-3 py-1 rounded"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => deleteMaterial(item.id)}
-                                                className="hover:bg-red-600 text-black px-3 py-1 rounded"
-                                            >
-                                                Hapus
-                                            </button>
+                                            <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-sm">
+                                                {material.satuan}
+                                            </span>
+                                        </td>
+
+                                        <td className="p-3 text-center font-semibold">
+                                            {material.stok}
+                                        </td>
+
+                                        <td className="p-3 text-center">
+                                            {material.stok_minimum}
+                                        </td>
+
+                                        <td className="p-3 text-center">
+                                            {Number(material.stok) <= Number(material.stok_minimum) ? (
+                                                <span className="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                                                    Stok Menipis
+                                                </span>
+                                            ) : (
+                                                <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                                                    Aman
+                                                </span>
+                                            )}
+                                        </td>
+
+                                        {/* Aksi */}
+                                        <td className="p-3 text-center">
+                                            <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+
+                                                <SecondaryButton onClick={() => editMaterial(material)}>
+                                                    Edit
+                                                </SecondaryButton>
+
+                                                <DangerButton onClick={() => deleteMaterial(material.id)}>
+                                                    Hapus
+                                                </DangerButton>
+
+                                            </div>
                                         </td>
 
                                     </tr>
                                 ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" className="p-8 text-center text-gray-500">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <span className="text-4xl">📦</span>
+                                            <p className="font-medium">Belum ada material</p>
+                                            <p className="text-sm">
+                                                Klik <b>+ Tambah Material</b> untuk menambahkan bahan baku produksi.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
 
@@ -208,7 +271,7 @@ export default function Index({ materials }) {
                                 })
                             }
                             className="w-full border rounded-lg p-2"
-                            placeholder="Contoh: KNV-001"
+                            placeholder="KNV-001"
                             required
                         />
 
@@ -231,7 +294,7 @@ export default function Index({ materials }) {
                                 })
                             }
                             className="w-full border rounded-lg p-2"
-                            placeholder="Contoh: Kain Canvas"
+                            placeholder=""
                             required
                         />
 
@@ -348,7 +411,32 @@ export default function Index({ materials }) {
                                 })
                             }
                             className="w-full border rounded-lg p-2"
-                            placeholder="Contoh: 50.0000"
+                            placeholder=""
+                            required
+                        />
+
+                    </div>
+
+                    {/* Stok Minimum */}
+                    <div className="mb-4">
+
+                        <label className="block font-semibold mb-2">
+                            Stok Minimum
+                        </label>
+
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.0001"
+                            value={data.stok_minimum}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    stok_minimum: e.target.value,
+                                })
+                            }
+                            className="w-full border rounded-lg p-2"
+                            placeholder=""
                             required
                         />
 
@@ -373,7 +461,7 @@ export default function Index({ materials }) {
                                 })
                             }
                             className="w-full border rounded-lg p-2"
-                            placeholder="Contoh: 50.0000"
+                            placeholder=""
                             required
                         />
 
@@ -383,73 +471,16 @@ export default function Index({ materials }) {
 
                     </div>
 
-                    {/* Stok Minimum */}
-                    <div className="mb-4">
-
-                        <label className="block font-semibold mb-2">
-                            Stok Minimum
-                        </label>
-
-                        <input
-                            type="number"
-                            min="0"
-                            step="0.0001"
-                            value={data.stok_minimum}
-                            onChange={(e) =>
-                                setData({
-                                    ...data,
-                                    stok_minimum: e.target.value,
-                                })
-                            }
-                            className="w-full border rounded-lg p-2"
-                            placeholder="Contoh: 5.0000"
-                            required
-                        />
-
-                    </div>
-
-                    {/* Harga */}
-                    <div className="mb-6">
-
-                        <label className="block font-semibold mb-2">
-                            Harga
-                        </label>
-
-                        <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={data.harga}
-                            onChange={(e) =>
-                                setData({
-                                    ...data,
-                                    harga: e.target.value,
-                                })
-                            }
-                            className="w-full border rounded-lg p-2"
-                            placeholder="Contoh: 25000"
-                            required
-                        />
-
-                    </div>
-
                     {/* Tombol */}
                     <div className="flex justify-end gap-3">
 
-                        <button
-                            type="button"
-                            onClick={() => setShowModal(false)}
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded"
-                        >
+                        <SecondaryButton onClick={() => setShowModal(false)} type="button">
                             Batal
-                        </button>
+                        </SecondaryButton>
 
-                        <button
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
-                        >
-                            Simpan
-                        </button>
+                        <PrimaryButton type="submit" disabled={processing}>
+                            {processing ? 'Menyimpan...' : 'Simpan'}
+                        </PrimaryButton>
 
                     </div>
 

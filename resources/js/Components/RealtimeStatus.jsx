@@ -6,89 +6,135 @@ import {
     FaExclamationTriangle,
 } from "react-icons/fa";
 
-export default function RealtimeStatus() {
 
-    const data = {
-        online: true,
-        operator: 12,
-        order: 35,
-        delivery: 8,
-        stockAlert: 2,
-    };
+export default function RealtimeStatus({ realtime }) {
+
+
+    const data = realtime;
+
+
 
     return (
 
-        <div className="grid grid-cols-5 gap-5 mt-6">
+        <div className="grid grid-cols-5 gap-4">
 
-            {/* Sistem */}
-            <div className="bg-green-500 rounded-xl text-white p-4 shadow flex items-center gap-4">
 
-                <FaWifi size={28}/>
+            {/* SYSTEM */}
 
-                <div>
-                    <p className="text-sm">Status Sistem</p>
-                    <h3 className="font-bold text-lg">
-                        {data.online ? "ONLINE" : "OFFLINE"}
-                    </h3>
-                </div>
+            <div className="bg-green-500 rounded-xl text-white p-4 shadow">
 
-            </div>
+                <FaWifi size={25}/>
 
-            {/* Operator */}
-            <div className="bg-blue-500 rounded-xl text-white p-4 shadow flex items-center gap-4">
+                <p className="text-sm mt-2">
+                    Sistem
+                </p>
 
-                <FaUsers size={28}/>
-
-                <div>
-                    <p className="text-sm">Operator Aktif</p>
-                    <h3 className="font-bold text-lg">
-                        {data.operator}
-                    </h3>
-                </div>
+                <h3 className="font-bold text-xl">
+                    {data.online ? "ONLINE":"OFFLINE"}
+                </h3>
 
             </div>
 
-            {/* Order */}
-            <div className="bg-purple-500 rounded-xl text-white p-4 shadow flex items-center gap-4">
 
-                <FaClipboardList size={28}/>
 
-                <div>
-                    <p className="text-sm">Order Hari Ini</p>
-                    <h3 className="font-bold text-lg">
-                        {data.order}
-                    </h3>
-                </div>
 
-            </div>
+            {/* USER */}
 
-            {/* Pengiriman */}
-            <div className="bg-orange-500 rounded-xl text-white p-4 shadow flex items-center gap-4">
+            <div className="bg-blue-500 rounded-xl text-white p-4 shadow">
 
-                <FaTruck size={28}/>
+                <FaUsers size={25}/>
 
-                <div>
-                    <p className="text-sm">Pengiriman</p>
-                    <h3 className="font-bold text-lg">
-                        {data.delivery}
-                    </h3>
-                </div>
+                <p className="text-sm mt-2">
+                    User Aktif
+                </p>
+
+                <h3 className="font-bold text-xl">
+                    {data.operator}
+                </h3>
 
             </div>
 
-            {/* Alert */}
-            <div className="bg-red-500 rounded-xl text-white p-4 shadow flex items-center gap-4">
 
-                <FaExclamationTriangle size={28}/>
 
-                <div>
-                    <p className="text-sm">Stok Menipis</p>
-                    <h3 className="font-bold text-lg">
-                        {data.stockAlert}
-                    </h3>
-                </div>
+
+
+            {/* PRODUKSI */}
+
+            <div className="bg-purple-500 rounded-xl text-white p-4 shadow">
+
+
+                <FaClipboardList size={25}/>
+
+
+                <p className="text-sm mt-2">
+                    SPK Running
+                </p>
+
+
+                <h3 className="font-bold text-xl">
+
+                    {data.production_running}
+
+                </h3>
+
 
             </div>
+
+
+
+
+
+
+            {/* MR GUDANG */}
+
+            <div className="bg-orange-500 rounded-xl text-white p-4 shadow">
+
+
+                <FaTruck size={25}/>
+
+
+                <p className="text-sm mt-2">
+                    MR Gudang
+                </p>
+
+
+                <h3 className="font-bold text-xl">
+
+                    {data.material_request}
+
+                </h3>
+
+
+            </div>
+
+
+
+
+
+
+            {/* STOCK */}
+
+            <div className="bg-red-500 rounded-xl text-white p-4 shadow">
+
+
+                <FaExclamationTriangle size={25}/>
+
+
+                <p className="text-sm mt-2">
+                    Stok Kritis
+                </p>
+
+
+                <h3 className="font-bold text-xl">
+
+                    {data.stock_alert}
+
+                </h3>
+
+
+            </div>
+
+
 
         </div>
 

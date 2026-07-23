@@ -9,40 +9,45 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::create('material_request_details', function (Blueprint $table) {
-
+        Schema::create('material_requests', function (Blueprint $table) {
 
             $table->id();
 
+            $table->string('nomor_mr')->unique();
 
-            $table->foreignId('material_request_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+            $table->foreignId('production_order_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
 
+            $table->date('tanggal');
 
-            $table->foreignId('material_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+            $table->enum('status', [
+                'Pending',
+                'Approved',
+                'Rejected'
+            ])->default('Pending');
 
+            $table->text('catatan')->nullable();
 
-            // kebutuhan material dari BOM
-            $table->decimal('qty_request',10,2);
+            $table->foreignId('created_by')
+                ->constrained('users');
 
+            $table->foreignId('approved_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
-            // jumlah yang disetujui gudang
-            $table->decimal('qty_approved',10,2)
-                  ->default(0);
-
+            $table->timestamp('approved_at')
+                ->nullable();
 
             $table->timestamps();
-
         });
     }
 
 
     public function down(): void
-    {
-        Schema::dropIfExists('material_request_details');
-    }
-
+{
+    Schema::dropIfExists('material_requests');
+}
 };

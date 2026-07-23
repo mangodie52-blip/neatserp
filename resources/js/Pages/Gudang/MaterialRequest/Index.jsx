@@ -1,14 +1,15 @@
-import { Link } from "@inertiajs/react";
-import AppLayout from "@/Layouts/AppLayout";
-import { useState } from 'react';
-
-
-
-
+import { useState, useEffect, useRef } from 'react';
+import { Link } from '@inertiajs/react';
+import AppLayout from '@/Layouts/AppLayout';
 
 export default function Index({ requests }) {
 
+    const [openMaterials, setOpenMaterials] = useState(null);
     const [selectedMr, setSelectedMr] = useState(null);
+    const popupRef = useRef(null);
+
+    // DEBUG (hapus nanti kalau sudah normal)
+    console.log(requests.find(r => r.nomor_mr === 'MR-260722-005'));
 
     const openStatusDetail = (mr) => {
         setSelectedMr(mr);
@@ -17,51 +18,76 @@ export default function Index({ requests }) {
     const closeStatusDetail = () => {
         setSelectedMr(null);
     };
+
+    useEffect(() => {
+
+        function handleClickOutside(event) {
+
+            if (
+                popupRef.current &&
+                !popupRef.current.contains(event.target)
+            ) {
+                setOpenMaterials(null);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+
+    }, []);
+
     return (
-
-
 
         <AppLayout>
 
             <div className="p-6">
+
                 <h1 className="text-2xl font-bold mb-5">
                     Material Request
                 </h1>
 
-
-                <div className="bg-white shadow rounded">
-
+                <div className="bg-white shadow rounded overflow-x-auto">
 
                     <table className="w-full table-fixed border-collapse">
 
-                        <thead className="bg-gray-100">
+                        <thead className="bg-gray-100 sticky top-0 z-10">
 
                             <tr>
 
-                                <th className="border p-3 text-left">
+                                <th className="border px-4 py-3 text-center font-semibold">
                                     No MR
                                 </th>
 
-                                <th className="border p-3 text-center">
-                                    Tanggal Kirim
+                                <th className="border px-4 py-3 text-center font-semibold">
+                                    No SPK
                                 </th>
 
-                                <th className="border p-3 text-center">
-                                    Jam Kirim
+                                <th className="border px-4 py-3 text-center font-semibold">
+                                    Produk
                                 </th>
 
-                                <th className="border p-3 text-center">
+                                <th className="border px-4 py-3 text-center font-semibold">
+                                    Jumlah Item / Material
+                                </th>
+
+                                <th className="border px-4 py-3 text-center font-semibold">
                                     Status
                                 </th>
 
-                                <th className="border p-3 text-center">
-                                    Action
+                                <th className="border px-4 py-3 text-center font-semibold whitespace-nowrap">
+                                    Tanggal
+                                </th>
+
+                                <th className="border px-4 py-3 text-center font-semibold">
+                                    Aksi
                                 </th>
 
                             </tr>
 
                         </thead>
-
 
                         <tbody>
 
@@ -69,99 +95,169 @@ export default function Index({ requests }) {
 
                                 <tr
                                     key={mr.id}
-                                    className="border-b hover:bg-gray-50"
+                                    className="border-b hover:bg-blue-50 transition-colors duration-200"
                                 >
 
-                                    <td className="p-3 text-left">
+                                    {/* NO MR */}
+                                    <td className="p-3 text-center font-semibold whitespace-nowrap">
                                         {mr.nomor_mr}
                                     </td>
 
-                                    <td className="p-3 text-center">
-                                        {new Date(mr.created_at).toLocaleDateString("id-ID")}
+                                    {/* NO SPK */}
+                                    <td className="p-3 text-center font-semibold whitespace-nowrap">
+                                        {mr.production_order?.nomor_spk ?? '-'}
                                     </td>
 
-                                    <td className="p-3 text-center">
-                                        {new Date(mr.created_at).toLocaleTimeString("id-ID", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
+                                    {/* PRODUK */}
+                                    <td className="p-3 text-center font-semibold whitespace-nowrap">
+                                        {mr.production_order?.product?.nama ?? '-'}
                                     </td>
 
-                                    <td className="p-3 text-center">
+                                    {/* JUMLAH ITEM / MATERIAL */}
+                                    <td className="p-3 text-center relative">
 
-                                        <td className="p-3 text-center">
+                                        {mr.status === 'Approved' ? (
+
+                                            <>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setOpenMaterials(
+                                                            openMaterials === mr.id ? null : mr.id
+                                                        )
+                                                    }
+                                                    className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-green-200 transition"
+                                                >
+                                                    {mr.details_count} Material
+                                                </button>
+
+                                                {openMaterials === mr.id && (
+                                                    <div
+                                                        ref={popupRef}
+                                                        className="absolute z-50 mt-2 left-1/2 -translate-x-1/2 w-80 bg-white border rounded-xl shadow-xl p-4 text-left"
+                                                    >
+
+                                                        <div className="font-semibold text-green-700 mb-2">
+                                                            📦 Material Disiapkan
+                                                        </div>
+
+                                                        <div className="border-t pt-2 max-h-60 overflow-y-auto space-y-2">
+
+                                                            {mr.details.map((d) => (
+                                                                <div
+                                                                    key={d.id}
+                                                                    className="flex justify-between items-center text-sm"
+                                                                >
+
+                                                                    <span className="font-medium">
+                                                                        {d.material?.nama}
+                                                                    </span>
+
+                                                                    <span className="text-gray-700 font-semibold">
+                                                                        {Number(d.qty_approved || 0).toLocaleString('id-ID')} {d.satuan}
+                                                                    </span>
+
+                                                                </div>
+                                                            ))}
+
+                                                        </div>
+
+                                                    </div>
+                                                )}
+
+                                            </>
+
+                                        ) : mr.status === 'Partial' ? (
+
+                                            <button
+                                                onClick={() =>
+                                                    setOpenMaterials(
+                                                        openMaterials === mr.id ? null : mr.id
+                                                    )
+                                                }
+                                                className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold hover:bg-orange-200 transition"
+                                            >
+                                                {mr.material_ready_count} Material
+                                            </button>
+
+                                        ) : (
+
+                                            <span className="text-gray-300 font-semibold">—</span>
+
+                                        )}
+
+                                    </td>
+
+                                    {/* STATUS */}
+                                    <td className="p-3 text-center align-middle">
+
+                                        <button
+                                            onClick={() => openStatusDetail(mr)}
+                                            className="inline-flex items-center justify-center hover:scale-105 transition"
+                                        >
 
                                             {mr.status === 'Waiting Approval' && (
-                                                <td className="py-4 px-6 align-middle text-center">
-                                                    <div className="w-full flex items-center justify-center translate-x-10">
-
-                                                        <button
-                                                            onClick={() => openStatusDetail(mr)}
-                                                            className="min-w-[150px] inline-flex items-center justify-center bg-white-100 text-black-700 px-4 py-2 rounded-full text-sm font-semibold hover:bg-yellow-200 transition cursor-pointer"
-                                                        >
-                                                            ⏳ Waiting Approval
-                                                        </button>
-                                                    </div>
-                                                </td>
-
+                                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    Waiting Approval
+                                                </span>
                                             )}
 
                                             {mr.status === 'Pending' && (
+                                                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    Pending
+                                                </span>
+                                            )}
 
-                                                <td className="py-4 px-6 align-middle text-center">
-                                                    <div className="w-full flex items-center justify-center translate-x-10">
-
-                                                        <button
-                                                            onClick={() => openStatusDetail(mr)}
-                                                            className="min-w-[150px] inline-flex items-center justify-center bg-white-100 text-orange-700 px-2 py-2 rounded-full text-sm font-semibold hover:bg-orange-200 transition cursor-pointer"
-                                                        >
-                                                            ⚠️ Pending
-                                                        </button>
-
-                                                    </div>
-                                                </td>
+                                            {mr.status === 'Partial' && (
+                                                <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    Partial
+                                                </span>
                                             )}
 
                                             {mr.status === 'Approved' && (
-
-                                                <td className="py-4 px-6 align-middle text-center">
-                                                    <div className="w-full flex items-center justify-center translate-x-10">
-
-                                                        <button
-                                                            onClick={() => openStatusDetail(mr)}
-                                                            className="min-w-[150px] inline-flex items-center justify-center bg-white-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-200 transition cursor-pointer"
-                                                        >
-                                                            ⚙️ Proses
-                                                        </button>
-
-                                                    </div>
-                                                </td>
+                                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    Proses
+                                                </span>
                                             )}
 
                                             {mr.status === 'Rejected' && (
-
-                                                <button
-                                                    onClick={() => openStatusDetail(mr)}
-                                                    className="min-w-[150px] inline-flex items-center justify-center bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-semibold hover:bg-red-200 transition cursor-pointer"
-                                                >
-                                                    ❌ Reject
-                                                </button>
+                                                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    Rejected
+                                                </span>
                                             )}
 
-                                        </td>
+                                        </button>
 
                                     </td>
 
+                                    {/* TANGGAL */}
+                                    <td className="p-3 text-center whitespace-nowrap">
+
+                                        <div className="font-semibold text-gray-800">
+                                            {new Date(mr.created_at).toLocaleDateString('id-ID', {
+                                                day: '2-digit',
+                                                month: 'short',
+                                                year: 'numeric',
+                                            })}
+                                        </div>
+
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {new Date(mr.created_at).toLocaleTimeString('id-ID', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}
+                                        </div>
+
+                                    </td>
+
+                                    {/* AKSI */}
                                     <td className="p-3 text-center">
 
                                         <Link
-                                            href={route(
-                                                "material-requests.show",
-                                                mr.id
-                                            )}
-                                            className="bg-white-500  hover:bg-blue-700 text-black px-5 py-2 rounded"
+                                            href={route('material-requests.show', mr.id)}
+                                            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm"
                                         >
-                                            Detail
+                                            👁 Detail
                                         </Link>
 
                                     </td>
@@ -174,11 +270,11 @@ export default function Index({ requests }) {
 
                     </table>
 
-
                 </div>
 
-
             </div>
+
+            {/* MODAL DETAIL STATUS */}
             {selectedMr && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
@@ -199,58 +295,6 @@ export default function Index({ requests }) {
 
                         </div>
 
-                        {/* Waiting */}
-                        {selectedMr.status === 'Waiting Approval' && (
-                            <>
-                                <div className="bg-yellow-100 text-yellow-700 px-3 py-2 rounded-lg font-semibold mb-4">
-                                    ⏳ Waiting Approval
-                                </div>
-
-                                <p className="text-sm text-gray-700 mb-4">
-                                    Material Request masih menunggu approval dari bagian gudang.
-                                </p>
-                            </>
-                        )}
-
-                        {/* Pending */}
-                        {selectedMr.status === 'Pending' && (
-                            <>
-                                <div className="bg-orange-100 text-orange-700 px-3 py-2 rounded-lg font-semibold mb-4">
-                                    ⚠️ Pending
-                                </div>
-
-                                <p className="text-sm text-gray-700 mb-4">
-                                    MR belum ditindaklanjuti oleh bagian gudang dalam batas waktu yang ditentukan.
-                                </p>
-                            </>
-                        )}
-
-                        {/* Proses */}
-                        {selectedMr.status === 'Approved' && (
-                            <>
-                                <div className="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg font-semibold mb-4">
-                                    ⚙️ Proses
-                                </div>
-
-                                <p className="text-sm text-gray-700 mb-4">
-                                    Material Request sudah disetujui dan sedang diproses oleh gudang.
-                                </p>
-                            </>
-                        )}
-
-                        {/* Reject */}
-                        {selectedMr.status === 'Rejected' && (
-                            <>
-                                <div className="bg-red-100 text-red-700 px-3 py-2 rounded-lg font-semibold mb-4">
-                                    ❌ Reject
-                                </div>
-
-                                <p className="text-sm text-gray-700 mb-4">
-                                    {selectedMr.reject_reason || 'Tidak ada alasan penolakan.'}
-                                </p>
-                            </>
-                        )}
-
                         <div className="border-t pt-4 space-y-2 text-sm">
 
                             <div className="flex justify-between">
@@ -259,16 +303,14 @@ export default function Index({ requests }) {
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="font-medium text-gray-600">Dibuat</span>
-                                <span>
-                                    {new Date(selectedMr.created_at).toLocaleString('id-ID')}
-                                </span>
+                                <span className="font-medium text-gray-600">Status</span>
+                                <span className="font-semibold">{selectedMr.status}</span>
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="font-medium text-gray-600">Sekarang</span>
+                                <span className="font-medium text-gray-600">Dibuat</span>
                                 <span>
-                                    {new Date().toLocaleString('id-ID')}
+                                    {new Date(selectedMr.created_at).toLocaleString('id-ID')}
                                 </span>
                             </div>
 
@@ -280,7 +322,5 @@ export default function Index({ requests }) {
             )}
 
         </AppLayout>
-
     );
 }
-
