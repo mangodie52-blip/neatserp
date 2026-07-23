@@ -14,10 +14,12 @@ class Bom extends Model
         'waste',
     ];
 
+
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
+
 
     public function material()
     {

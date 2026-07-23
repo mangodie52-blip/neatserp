@@ -60,7 +60,7 @@
         }
 
         .material {
-            text-align: left !important;
+            text-align: center !important;
             font-weight: 600;
         }
 

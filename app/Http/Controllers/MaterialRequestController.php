@@ -322,6 +322,14 @@ class MaterialRequestController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
+        MaterialRequestDetail::create([
+            'material_request_id' => $mr->id,
+            'material_id'         => $bom->material_id,
+            'qty_request'         => $totalKebutuhan,
+            'qty_approved'        => 0,
+            'satuan'              => $bom->satuan, // ✅ dari BOM
+        ]);
+
         return back()->with('success', 'Material Request berhasil direject.');
     }
 }

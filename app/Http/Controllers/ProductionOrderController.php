@@ -19,16 +19,16 @@ class ProductionOrderController extends Controller
      * Tampilkan daftar SPK
      */
     public function index()
-{
-    $orders = ProductionOrder::with([
-        'product.boms.material'
-    ])->latest()->get();
+    {
+        $orders = ProductionOrder::with([
+            'product.boms.material'
+        ])->latest()->get();
 
-    return Inertia::render('Production/Index', [
-        'orders' => $orders,
-        'products' => Product::all(),
-    ]);
-}
+        return Inertia::render('Production/Index', [
+            'orders' => $orders,
+            'products' => Product::all(),
+        ]);
+    }
 
     /**
      * Simpan SPK baru
@@ -136,22 +136,29 @@ class ProductionOrderController extends Controller
 
         $qtyProduksi = $productionOrder->qty;
 
-
         $materials = [];
 
 
         foreach ($productionOrder->product->boms as $bom) {
 
-            $kebutuhan =
-                $bom->qty_per_pcs * $qtyProduksi;
+            // kebutuhan dasar
+            $totalKebutuhan =
+                $bom->kebutuhan * $qtyProduksi;
 
 
-            $waste =
-                $kebutuhan * ($bom->waste / 100);
+            // ambil isi kemasan material
+            $isiKemasan =
+                $bom->material->isi_kemasan ?? 0;
 
 
-            $total =
-                $kebutuhan + $waste;
+            // jumlah kemasan
+            $jumlahKemasan = 0;
+
+            if ($isiKemasan > 0) {
+
+                $jumlahKemasan =
+                    $totalKebutuhan / $isiKemasan;
+            }
 
 
             $materials[] = [
@@ -161,19 +168,53 @@ class ProductionOrderController extends Controller
                 'nama_material' =>
                 $bom->material->nama,
 
-                'qty' => $total,
+
+                'kebutuhan_per_pcs' =>
+                $bom->kebutuhan,
+
+
+                'qty_produksi' =>
+                $qtyProduksi,
+
+
+                'total_kebutuhan' =>
+                $totalKebutuhan,
+
+
+                'isi_kemasan' =>
+                $isiKemasan,
+
+
+                'jumlah_kemasan' =>
+                $jumlahKemasan,
+
 
                 'satuan' =>
-                $bom->material->satuan
+                $bom->satuan,
+
+
+                'waste' =>
+                $bom->waste,
             ];
         }
 
 
         return response()->json([
-            'spk' => $productionOrder->nomor_spk,
-            'product' => $productionOrder->product->nama,
-            'qty_produksi' => $qtyProduksi,
-            'materials' => $materials
+
+            'spk' =>
+            $productionOrder->nomor_spk,
+
+
+            'product' =>
+            $productionOrder->product->nama,
+
+
+            'qty_produksi' =>
+            $qtyProduksi,
+
+
+            'materials' =>
+            $materials
         ]);
     }
 }

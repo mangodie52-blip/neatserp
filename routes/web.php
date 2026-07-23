@@ -40,8 +40,7 @@ Route::middleware(['auth'])->group(function () {
         '/boms/{product}/generate',
         [BomController::class, 'generate']
     )->name('boms.generate');
-
-
+    
     // Master Products
     Route::resource('products', ProductController::class);
 

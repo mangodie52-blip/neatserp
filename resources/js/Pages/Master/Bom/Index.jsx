@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { router, usePage } from "@inertiajs/react";
-import AppLayout from "@/Layouts/AppLayout";
-import PrimaryButton from "@/Components/PrimaryButton";
+import { useState } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import AppLayout from '@/Layouts/AppLayout';
 
 export default function Index() {
 
@@ -13,231 +12,137 @@ export default function Index() {
     const formatNumber = (num) => {
         const value = parseFloat(num || 0);
 
-        // hilangkan nol di belakang koma
         return value % 1 === 0
             ? value.toString()
             : value.toFixed(4).replace(/\.?0+$/, '');
     };
+
+    // format 1000 => 1.000
+    const formatRibuan = (value) => {
+
+        if (!value) return '';
+
+        return Number(value).toLocaleString('id-ID');
+    };
+
+
 
     // =========================
     // STATE
     // =========================
 
     const [showModal, setShowModal] = useState(false);
-    const [showAutoBom, setShowAutoBom] = useState(false);
 
-    const [selectedProduct, setSelectedProduct] = useState("");
-
-    const [qtyProduksi, setQtyProduksi] = useState("");
+    // untuk tampilan input qty
+    const [qtyDisplay, setQtyDisplay] = useState('');
 
     const [data, setData] = useState({
-        product_id: "",
-        material_id: "",
-        kebutuhan: "",
-        satuan: "",
-        waste: "",
+        product_id: '',
+        material_id: '',
+        kebutuhan: '',
+        satuan: '',
+        waste: 0,
     });
 
     // =========================
     // RESET FORM
     // =========================
-
     const resetForm = () => {
 
         setData({
-            product_id: "",
-            material_id: "",
-            kebutuhan: "",
-            satuan: "",
-            waste: "",
+            product_id: '',
+            material_id: '',
+            kebutuhan: '',
+            satuan: '',
+            waste: 0,
         });
 
+        setQtyDisplay('');
     };
 
     // =========================
-    // SIMPAN BOM
+    // HANDLE QTY PERMINTAAN
     // =========================
+    const handleQtyChange = (e) => {
 
+        // ambil hanya angka
+        const raw = e.target.value.replace(/\D/g, '');
+
+        // simpan angka asli ke data
+        setData({
+            ...data,
+            qty_permintaan: raw,
+        });
+
+        // tampilkan format ribuan
+        setQtyDisplay(formatRibuan(raw));
+    };
+
+
+    // =========================
+    // SAVE BOM
+    // =========================
     const submit = (e) => {
 
         e.preventDefault();
 
-        router.post(route("boms.store"), data, {
+        router.post(route('boms.store'), data, {
 
             preserveScroll: true,
 
             onSuccess: () => {
 
+                alert('✅ BOM berhasil disimpan');
+
                 setShowModal(false);
                 resetForm();
-
             },
 
-            onError: (err) => {
-                console.log(err);
-            }
+            onError: (errors) => {
 
+                console.log(errors);
+                alert('❌ Gagal menyimpan BOM');
+            },
         });
-
-        router.post(
-            route('material-requests.store'),
-            {
-                production_order_id: selectedProductionOrder,
-                product_id: selectedProduct,
-                qty_produksi: qtyProduksi,
-                boms: calculatedBoms,
-            },
-            {
-                preserveScroll: true,
-
-                onSuccess: () => {
-                    alert('✅ Material Request berhasil dikirim ke Gudang.');
-                    setShowAutoBom(false);
-                    setQtyProduksi('');
-                },
-
-                onError: (errors) => {
-                    console.log(errors);
-                    alert('❌ Gagal mengirim Material Request. Cek console.');
-                }
-            }
-        );
-
     };
 
     // =========================
     // HAPUS BOM
     // =========================
-
     const deleteBom = (id) => {
 
-        if (!confirm("Yakin ingin menghapus BOM?")) {
-            return;
-        }
+        if (!confirm('Yakin ingin menghapus BOM?')) return;
 
-        router.delete(route("boms.destroy", id));
-
+        router.delete(route('boms.destroy', id));
     };
 
-    // =========================
-    // AUTO BOM
-    // =========================
-
-    const generateBom = () => {
-
-        if (!selectedProduct) {
-
-            alert("Pilih Product terlebih dahulu.");
-            return;
-
+    const formatSatuan = (satuan) => {
+        switch (satuan) {
+            case 'M':
+                return 'Meter';
+            case 'KG':
+                return 'Kg';
+            case 'PCS':
+                return 'PCS';
+            case 'ROLL':
+                return 'Roll';
+            case 'PACK':
+                return 'Pack';
+            case 'BOX':
+                return 'Box';
+            default:
+                return satuan; // kalau ada satuan baru, tampil apa adanya
         }
-
-        setShowAutoBom(true);
-
     };
 
-    // =========================
-    // SEND TO GUDANG
-    // =========================
-
-    router.post(
-        route("production-orders.store"),
-        data,
-        {
-            onSuccess: () => {
-
-                // reset form
-                setData({
-                    nomor_spk: "",
-                    product_id: "",
-                    qty: "",
-                    tanggal: new Date().toISOString().slice(0, 10),
-                    status: "Draft",
-                    send_to_gudang: true,
-                });
-
-                onClose();
-            },
-        }
-    );
-
-    const sendToGudang = () => {
-
-        if (!selectedProduct) {
-            alert('Pilih product terlebih dahulu.');
-            return;
-        }
-
-        if (!qtyProduksi || Number(qtyProduksi) <= 0) {
-            alert('Masukkan Qty Produksi.');
-            return;
-        }
-
-        // hitung kebutuhan berdasarkan BOM
-        const calculatedBoms = selectedBoms.map((bom) => {
-
-            const qty = Number(qtyProduksi);
-            const kebutuhan = Number(bom.kebutuhan || 0);
-            const waste = Number(bom.waste || 0);
-
-            // total kebutuhan produksi
-            const total =
-                kebutuhan *
-                qty *
-                (1 + waste / 100);
-
-            return {
-                material_id: bom.material_id,
-                qty_request: Number(total.toFixed(4)),
-                satuan: bom.satuan, // ✅ SATUAN DARI BOM
-            };
-        });
-
-        router.post(
-            route('material-requests.store'),
-            {
-                product_id: selectedProduct,
-                qty_produksi: qtyProduksi,
-                boms: calculatedBoms,
-            },
-            {
-                preserveScroll: true,
-
-                onSuccess: () => {
-                    alert('✅ Material Request berhasil dikirim ke Gudang.');
-                    setShowAutoBom(false);
-                    setQtyProduksi('');
-                },
-
-                onError: (errors) => {
-                    console.log(errors);
-                    alert('❌ Gagal mengirim Material Request. Cek console.');
-                }
-            }
-        );
-    };
-
-    // =========================
-    // FILTER BOM
-    // =========================
-
-    const selectedBoms = boms.filter(
-
-        (bom) =>
-            Number(bom.product_id) === Number(selectedProduct)
-
-    );
-
-    // =========================
-    // VIEW
-    // =========================
 
     return (
 
         <AppLayout>
+
             <div className="p-6">
 
-                {/* Header */}
+                {/* HEADER */}
 
                 <div className="flex justify-between items-center mb-6">
 
@@ -257,7 +162,7 @@ export default function Index() {
 
                 </div>
 
-                {/* Tabel */}
+                {/* TABEL BOM */}
 
                 <div className="bg-white rounded-xl shadow overflow-hidden">
 
@@ -266,31 +171,15 @@ export default function Index() {
                         <thead className="bg-slate-800 text-white">
 
                             <tr>
-
-                                <th className="border px-4 py-3 w-16">
-                                    No
-                                </th>
-
-                                <th className="border px-4 py-3">
-                                    Product
-                                </th>
-
-                                <th className="border px-4 py-3">
-                                    Material
-                                </th>
-
-                                <th className="border px-4 py-3">
-                                    Satuan
-                                </th>
-
-                                <th className="border px-4 py-3">
-                                    Waste (%)
-                                </th>
-
-                                <th className="border px-4 py-3 w-32">
-                                    Aksi
-                                </th>
-
+                                <th className="border px-4 py-3 w-16">No</th>
+                                <th className="border px-4 py-3">Product</th>
+                                <th className="border px-4 py-3">Material</th>
+                                <th className="border px-4 py-3">Qty Permintaan</th>
+                                <th className="border px-4 py-3">Satuan</th>
+                                <th className="border px-4 py-3">Kebutuhan / PCS</th>
+                                <th className="border px-4 py-3">Jumlah Kemasan</th>
+                                <th className="border px-4 py-3">Waste (%)</th>
+                                <th className="border px-4 py-3 w-32">Aksi</th>
                             </tr>
 
                         </thead>
@@ -299,65 +188,117 @@ export default function Index() {
 
                             {boms.length > 0 ? (
 
-                                boms.map((bom, index) => (
+                                boms.map((bom, index) => {
 
-                                    <tr
-                                        key={bom.id}
-                                        className={`text-center border-b cursor-pointer hover:bg-blue-50 ${Number(selectedProduct) === Number(bom.product_id)
-                                            ? "bg-blue-100"
-                                            : ""
-                                            }`}
-                                        onClick={() =>
-                                            setSelectedProduct(bom.product_id)
-                                        }
-                                    >
+                                    // =========================
+                                    // KONVERSI KE METER
+                                    // =========================
 
-                                        <td className="border px-4 py-2">
-                                            {index + 1}
-                                        </td>
+                                    let kebutuhanMeter = parseFloat(bom.kebutuhan || 0);
 
-                                        <td className="border px-4 py-2">
-                                            {bom.product?.nama}
-                                        </td>
+                                    if (bom.satuan === 'CM') {
+                                        kebutuhanMeter = kebutuhanMeter / 100;
+                                    }
 
-                                        <td className="border p-3 text-center align-middle">
-                                            <div className="font-semibold flex items-center justify-center min-h-[44px]">
+                                    if (bom.satuan === 'MM') {
+                                        kebutuhanMeter = kebutuhanMeter / 1000;
+                                    }
+
+                                    // =========================
+                                    // TOTAL KEBUTUHAN PRODUKSI
+                                    // =========================
+
+                                    const totalKebutuhan =
+                                        kebutuhanMeter *
+                                        parseFloat(bom.qty_permintaan || 0) *
+                                        (1 + parseFloat(bom.waste || 0) / 100);
+
+                                    // =========================
+                                    // JUMLAH KEMASAN (ROLL)
+                                    // =========================
+
+                                    const jumlahKemasan =
+                                        totalKebutuhan / parseFloat(bom.isi_kemasan || 1);
+
+                                    return (
+
+                                        <tr
+                                            key={bom.id}
+                                            className="text-center border-b hover:bg-blue-50 transition-colors"
+                                        >
+
+                                            {/* NO */}
+
+                                            <td className="border px-4 py-2">
+                                                {index + 1}
+                                            </td>
+
+                                            {/* PRODUCT */}
+
+                                            <td className="border px-4 py-2 font-semibold">
+                                                {bom.product?.nama}
+                                            </td>
+
+                                            {/* MATERIAL */}
+
+                                            <td className="border px-4 py-2">
                                                 {bom.material?.nama}
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        <td className="border px-4 py-2">
-                                            {bom.material?.satuan}
-                                        </td>
+                                            {/* QTY PERMINTAAN */}
 
-                                        <td className="border px-4 py-2">
-                                            {parseInt(bom.waste)} %
-                                        </td>
+                                            <td className="border px-4 py-2 font-medium text-blue-700">
+                                                {formatNumber(bom.qty_permintaan)} pcs
+                                            </td>
 
-                                        <td className="border px-4 py-2">
+                                            {/* SATUAN PERMINTAAN */}
 
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    deleteBom(bom.id);
-                                                }}
-                                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                                            >
-                                                Hapus
-                                            </button>
+                                            <td className="border px-4 py-2">
+                                                {formatSatuan(bom.satuan)}
+                                            </td>
 
-                                        </td>
+                                            {/* KEBUTUHAN / PCS */}
 
-                                    </tr>
+                                            <td className="border px-4 py-2">
+                                                {formatNumber(bom.kebutuhan)}
+                                            </td>
 
-                                ))
+
+                                            {/* JUMLAH KEMASAN */}
+
+                                            <td className="border px-4 py-2 font-semibold text-orange-700">
+                                                {formatNumber(jumlahKemasan)} {bom.material?.satuan}
+                                            </td>
+
+                                            {/* WASTE */}
+
+                                            <td className="border px-4 py-2">
+                                                {formatNumber(bom.waste || 0)} %
+                                            </td>
+
+                                            {/* AKSI */}
+
+                                            <td className="border px-4 py-2">
+
+                                                <button
+                                                    onClick={() => deleteBom(bom.id)}
+                                                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                                                >
+                                                    Hapus
+                                                </button>
+
+                                            </td>
+
+                                        </tr>
+                                    );
+                                })
 
                             ) : (
 
                                 <tr>
 
                                     <td
-                                        colSpan="6"
+                                        colSpan="10"
                                         className="text-center py-8 text-gray-500"
                                     >
                                         Belum ada data BOM
@@ -373,17 +314,8 @@ export default function Index() {
 
                 </div>
 
-                {/* AUTO BOM */}
-
-                <div className="flex justify-center mt-6">
-
-                    <PrimaryButton onClick={generateBom}>
-                        BOOM
-                    </PrimaryButton>
-
-                </div>
-
             </div>
+
             {/* ===========================
                 MODAL TAMBAH BOM
             =========================== */}
@@ -392,7 +324,7 @@ export default function Index() {
 
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
 
-                    <div className="bg-white rounded-xl shadow-xl w-[500px] p-6">
+                    <div className="bg-white rounded-xl shadow-xl w-[560px] p-6">
 
                         <h2 className="text-2xl font-bold mb-6">
                             Tambah BOM
@@ -400,7 +332,7 @@ export default function Index() {
 
                         <form onSubmit={submit}>
 
-                            {/* Product */}
+                            {/* PRODUCT */}
 
                             <div className="mb-4">
 
@@ -420,26 +352,22 @@ export default function Index() {
                                     required
                                 >
 
-                                    <option value="">
-                                        Pilih Product
-                                    </option>
+                                    <option value="">Pilih Product</option>
 
                                     {products.map((product) => (
-
                                         <option
                                             key={product.id}
                                             value={product.id}
                                         >
                                             {product.nama}
                                         </option>
-
                                     ))}
 
                                 </select>
 
                             </div>
 
-                            {/* Material */}
+                            {/* MATERIAL */}
 
                             <div className="mb-4">
 
@@ -449,127 +377,113 @@ export default function Index() {
 
                                 <select
                                     value={data.material_id}
-                                    onChange={(e) => {
-
-                                        const material = materials.find(
-                                            (m) => Number(m.id) === Number(e.target.value)
-                                        );
-
-                                        setData({
-                                            ...data,
-                                            material_id: e.target.value,
-                                            satuan: material ? material.satuan : "",
-                                        });
-
-                                    }}
-                                    className="w-full border rounded-lg p-2"
-                                    required
-                                >
-
-                                    <option value="">
-                                        Pilih Material
-                                    </option>
-
-                                    {materials.map((material) => (
-
-                                        <option
-                                            key={material.id}
-                                            value={material.id}
-                                        >
-                                            {material.nama}
-                                        </option>
-
-                                    ))}
-
-                                </select>
-
-                            </div>
-
-                            {/* Satuan BOM */}
-                            <div className="mb-4">
-
-                                <label className="block font-semibold mb-2">
-                                    Satuan BOM
-                                </label>
-
-                                <select
-                                    value={data.satuan}
                                     onChange={(e) =>
                                         setData({
                                             ...data,
-                                            satuan: e.target.value,
+                                            material_id: e.target.value,
                                         })
                                     }
                                     className="w-full border rounded-lg p-2"
                                     required
                                 >
 
-                                    <option value="">
-                                        Pilih Satuan
-                                    </option>
+                                    <option value="">Pilih Material</option>
 
-                                    <option value="PCS">
-                                        PCS
-                                    </option>
-
-                                    <option value="M">
-                                        Meter (M)
-                                    </option>
-
-                                    <option value="CM">
-                                        Centimeter (CM)
-                                    </option>
-
-                                    <option value="MM">
-                                        Milimeter (MM)
-                                    </option>
-
-                                    <option value="Roll">
-                                        Roll
-                                    </option>
-
-                                    <option value="Box">
-                                        Box
-                                    </option>
-
-                                    <option value="Dus">
-                                        Dus
-                                    </option>
-
-                                    <option value="Cone">
-                                        Cone
-                                    </option>
-
-                                    <option value="Kg">
-                                        Kilogram (Kg)
-                                    </option>
-
-                                    <option value="Gram">
-                                        Gram
-                                    </option>
-
-                                    <option value="Liter">
-                                        Liter
-                                    </option>
-
-                                    <option value="Kaleng">
-                                        Kaleng
-                                    </option>
+                                    {materials.map((material) => (
+                                        <option
+                                            key={material.id}
+                                            value={material.id}
+                                        >
+                                            {material.nama}
+                                        </option>
+                                    ))}
 
                                 </select>
 
                             </div>
-                            {/* Kebutuhan */}
+
+                            {/* SATUAN PERMINTAAN BOM */}
+                            {/* SATUAN PERMINTAAN BOM */}
+
+                            <div className="mb-4 relative z-50">
+
+                                <label className="block font-semibold mb-2">
+                                    Satuan Permintaan BOM
+                                </label>
+
+                                <select
+                                    value={data.satuan || ''}
+                                    onChange={(e) =>
+                                        setData(prev => ({
+                                            ...prev,
+                                            satuan: e.target.value
+                                        }))
+                                    }
+                                    className="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                >
+
+                                    <option value="">Pilih Satuan</option>
+
+
+
+                                    {/* ===== BERAT ===== */}
+                                    <optgroup label="Berat">
+                                        <option value="KG">Kilogram (KG)</option>
+                                        <option value="GR">Gram (GR)</option>
+                                        <option value="TON">Ton (TON)</option>
+                                    </optgroup>
+
+                                    {/* ===== VOLUME ===== */}
+                                    <optgroup label="Volume">
+                                        <option value="L">Liter (L)</option>
+                                        <option value="ML">Mililiter (ML)</option>
+                                    </optgroup>
+
+                                    {/* ===== PANJANG ===== */}
+                                    <optgroup label="Panjang">
+                                        <option value="M">Meter (M)</option>
+                                        <option value="CM">Centimeter (CM)</option>
+                                        <option value="MM">Milimeter (MM)</option>
+                                        <option value="YD">Yard (YD)</option>
+                                    </optgroup>
+
+                                    {/* ===== JUMLAH ===== */}
+                                    <optgroup label="Jumlah">
+                                        <option value="PCS">Pieces (PCS)</option>
+                                        <option value="SET">Set (SET)</option>
+                                        <option value="PAIR">Pair / Pasang (PAIR)</option>
+                                        <option value="LUSIN">Lusin (12 PCS)</option>
+                                    </optgroup>
+
+                                    {/* ===== KEMASAN ===== */}
+                                    <optgroup label="Kemasan">
+                                        <option value="PACK">Pack</option>
+                                        <option value="BOX">Box</option>
+                                        <option value="ROLL">Roll</option>
+                                        <option value="CONE">Cone</option>
+                                        <option value="KARUNG">Karung</option>
+                                        <option value="DRUM">Drum</option>
+                                        <option value="PALLET">Pallet</option>
+                                    </optgroup>
+
+                                </select>
+
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Pilih satuan kebutuhan material per pcs produksi.
+                                </p>
+
+                            </div>
+
+                            {/* KEBUTUHAN */}
 
                             <div className="mb-4">
-
                                 <label className="block font-semibold mb-2">
                                     Kebutuhan / PCS
                                 </label>
 
                                 <input
                                     type="number"
-                                    min="0"
                                     step="0.0001"
                                     value={data.kebutuhan}
                                     onChange={(e) =>
@@ -579,13 +493,40 @@ export default function Index() {
                                         })
                                     }
                                     className="w-full border rounded-lg p-2"
-                                    placeholder=""
+                                    placeholder="0.5"
                                     required
                                 />
 
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Sistem akan otomatis mengkonversi satuan stok material
+                                    ke satuan permintaan BOM.
+                                </p>
+
                             </div>
 
-                            {/* Waste */}
+                            {/* QTY PERMINTAAN */}
+
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-2">
+                                    QTY Permintaan
+                                </label>
+
+                                <input
+                                    type="text"
+                                    value={qtyDisplay}
+                                    onChange={handleQtyChange}
+                                    className="w-full border rounded-lg p-2 text-left font-semibold"
+                                    placeholder="1.000"
+                                    required
+                                />
+
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Jumlah permintaan customer / qty SPK.
+                                </p>
+
+                            </div>
+
+                            {/* WASTE */}
 
                             <div className="mb-6">
 
@@ -604,13 +545,13 @@ export default function Index() {
                                         })
                                     }
                                     className="w-full border rounded-lg p-2"
-                                    placeholder=""
+                                    placeholder="contoh: 5"
                                     required
                                 />
 
                             </div>
 
-                            {/* Button */}
+                            {/* BUTTON */}
 
                             <div className="flex justify-end gap-3">
 
@@ -627,9 +568,9 @@ export default function Index() {
 
                                 <button
                                     type="submit"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded shadow"
                                 >
-                                    Simpan
+                                    💾 Save BOM
                                 </button>
 
                             </div>
@@ -641,208 +582,7 @@ export default function Index() {
                 </div>
 
             )}
-            {/* ===========================
-                MODAL AUTO BOM
-            =========================== */}
-
-            {showAutoBom && (
-
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-                    <div className="bg-white rounded-xl shadow-xl w-[900px] p-6">
-
-                        {/* Header */}
-
-                        <div className="flex justify-between items-center mb-6">
-
-                            <div>
-
-                                <h2 className="text-2xl font-bold">
-                                    📋 AUTO BOM
-                                </h2>
-
-                                <p className="text-gray-600 mt-2">
-
-                                    Product :
-
-                                    <span className="font-bold ml-2">
-
-                                        {
-                                            products.find(
-                                                (p) => Number(p.id) === Number(selectedProduct)
-                                            )?.nama
-                                        }
-
-                                    </span>
-
-                                </p>
-
-                            </div>
-
-                            <div className="flex gap-2">
-                                
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowAutoBom(false);
-                                        setQtyProduksi("");
-                                    }}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded"
-                                >
-                                    Tutup
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                        {/* Qty Produksi */}
-
-                        <div className="flex items-center gap-3 mb-5">
-
-                            <label className="font-semibold">
-                                Qty Produksi
-                            </label>
-
-                            <input
-                                type="number"
-                                min="1"
-                                value={qtyProduksi}
-                                onChange={(e) => setQtyProduksi(e.target.value)}
-                                placeholder="sesuai order permintaan"
-                                className="border rounded-lg p-2 w-52"
-                            />
-
-                        </div>
-
-                        {/* Tabel */}
-
-                        <table className="w-full border-collapse text-center">
-
-                            <thead className="bg-slate-900 text-white">
-
-                                <tr>
-
-                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
-                                        Material
-                                    </th>
-
-                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
-                                        Satuan
-                                    </th>
-
-                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
-                                        Waste
-                                    </th>
-
-                                    <th className="border border-gray-300 px-6 py-5 text-lg font-bold text-center align-middle">
-                                        Total Kebutuhan
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                {selectedBoms.length > 0 ? (
-
-                                    selectedBoms.map((bom) => {
-
-                                        const qty = Number(qtyProduksi || 0);
-
-                                        // kebutuhan per pcs
-                                        const kebutuhan = Number(bom.kebutuhan || 0);
-
-                                        // waste %
-                                        const waste = Number(bom.waste || 0);
-
-                                        // isi kemasan dari material
-                                        const isiKemasan = Number(
-                                            bom.material?.isi_kemasan || 1
-                                        );
-
-                                        const kemasan =
-                                            isiKemasan <= 0 ? 1 : isiKemasan;
-
-                                        // =========================
-                                        // RUMUS BARU DECIMAL
-                                        // (kebutuhan × qty produksi × (1 + waste%)) ÷ isi kemasan
-                                        // =========================
-                                        const total =
-                                            kebutuhan *
-                                            qty *
-                                            (1 + waste / 100);
-
-                                        return (
-
-                                            <tr
-                                                key={bom.id}
-                                                className="hover:bg-gray-50 transition-colors"
-                                            >
-
-                                                {/* Material */}
-                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
-                                                    <div className="font-semibold text-lg flex items-center justify-center min-h-[44px]">
-                                                        {bom.material?.nama}
-                                                    </div>
-                                                </td>
-
-                                                {/* Kebutuhan per PCS */}
-                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
-                                                    <div className="font-medium text-base">
-                                                        {formatNumber(bom.kebutuhan)} {bom.satuan}
-                                                    </div>
-                                                </td>
-
-                                                {/* Waste */}
-                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
-                                                    <div className="font-medium text-base">
-                                                        {formatNumber(bom.waste || 0)} %
-                                                    </div>
-                                                </td>
-
-                                                {/* Total kebutuhan */}
-                                                <td className="border border-gray-300 px-6 py-5 text-center align-middle">
-                                                    <div className="font-bold text-lg text-blue-700">
-                                                        {qty > 0
-                                                            ? `${formatNumber(total)} ${bom.satuan}`
-                                                            : '-'}
-                                                    </div>
-                                                </td>
-
-                                            </tr>
-                                        );
-
-                                    })
-
-                                ) : (
-
-                                    <tr>
-
-                                        <td
-                                            colSpan="4"
-                                            className="text-center py-6 text-gray-500"
-                                        >
-                                            Tidak ada data BOM.
-                                        </td>
-
-                                    </tr>
-
-                                )}
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            )}
 
         </AppLayout>
-
     );
-
 }

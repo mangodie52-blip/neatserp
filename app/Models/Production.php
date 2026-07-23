@@ -23,4 +23,9 @@ class Production extends Model
     {
         return $this->hasMany(ProductionOrder::class);
     }
+
+    public function boms()
+    {
+        return $this->hasMany(Bom::class);
+    }
 }

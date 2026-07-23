@@ -7,48 +7,67 @@ use App\Models\Product;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\ProductionOrder;
 
 class BomController extends Controller
 {
     public function index()
     {
+        $boms = Bom::with(['product', 'material'])
+            ->latest()
+            ->get()
+            ->map(function ($bom) {
+
+                // ambil SPK terakhir untuk produk ini
+                $spk = ProductionOrder::where('product_id', $bom->product_id)
+                    ->latest()
+                    ->first();
+
+                $qtyPermintaan = $spk ? $spk->qty : 0;
+
+                // total kebutuhan
+                $totalKebutuhan = $bom->kebutuhan * $qtyPermintaan;
+
+                // jumlah kemasan
+                $jumlahKemasan = 0;
+
+                if ($bom->material && $bom->material->isi_kemasan > 0) {
+                    $jumlahKemasan = $totalKebutuhan / $bom->material->isi_kemasan;
+                }
+
+                // tambahkan field baru untuk dikirim ke React
+                $bom->qty_permintaan = $qtyPermintaan;
+                $bom->jumlah_kemasan = round($jumlahKemasan, 2);
+
+                return $bom;
+            });
+
         return Inertia::render('Master/Bom/Index', [
-            'boms' => Bom::with(['product', 'material'])
-                ->latest()
-                ->get(),
-
+            'boms' => $boms,
             'products' => Product::latest()->get(),
-
             'materials' => Material::latest()->get(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'product_id'  => 'required|exists:products,id',
-            'material_id' => 'required|exists:materials,id',
-            'kebutuhan'   => 'required|numeric|min:0',
-            'satuan'      => 'required|string|max:20',
-            'waste'       => 'nullable|integer|min:0',
+        $request->validate([
+            'product_id' => 'required',
+            'material_id' => 'required',
+            'kebutuhan' => 'required|numeric|min:0.01',
+            'satuan' => 'required',
+            'waste' => 'nullable|numeric|min:0',
         ]);
-
-        $exists = Bom::where('product_id', $validated['product_id'])
-            ->where('material_id', $validated['material_id'])
-            ->exists();
-
-        if ($exists) {
-            return back()->with('error', 'Material sudah ada pada Product ini.');
-        }
 
         Bom::create([
-            'product_id'  => $validated['product_id'],
-            'material_id' => $validated['material_id'],
-            'kebutuhan'   => $validated['kebutuhan'],
-            'satuan'      => $validated['satuan'],
-            'waste'       => $validated['waste'] ?? 0,
+            'product_id'  => $request->product_id,
+            'material_id' => $request->material_id,
+            'kebutuhan'   => $request->kebutuhan,
+            'satuan'      => $request->satuan, // ✅ simpan dari input BOM
+            'waste'       => $request->waste ?? 0,
         ]);
-        return back()->with('success', 'BOM berhasil disimpan.');
+
+        return back()->with('success', 'BOM berhasil disimpan');
     }
 
     public function destroy(Bom $bom)

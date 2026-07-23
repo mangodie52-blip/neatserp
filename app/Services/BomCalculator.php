@@ -2,43 +2,56 @@
 
 namespace App\Services;
 
+use App\Models\Product;
+
 class BomCalculator
 {
-    /**
-     * Menghitung kebutuhan material.
-     */
-public function calculate(Request $request)
+    public function calculate(Product $product, $qtyPermintaan)
+    {
+        $results = [];
 
-    $request->validate([
-        'product_id'    => 'required|exists:products,id',
-        'qty_produksi'  => 'required|numeric|min:1',
-    ]);
+        foreach ($product->boms as $bom) {
 
-    $boms = Bom::with('material')
-        ->where('product_id', $request->product_id)
-        ->get();
+            $material = $bom->material;
 
-    $hasil = [];
+            // Total kebutuhan material
+            $totalKebutuhan = 
+                $bom->kebutuhan * $qtyPermintaan;
 
-    foreach ($boms as $bom) {
 
-        $hitung = BomCalculator::calculate(
-            $request->qty_produksi,
-            $bom->kebutuhan,
-            $bom->waste
-        );
+            // Konversi kemasan
+            $jumlahKemasan = 0;
 
-        $hasil[] = [
-            'material_id'       => $bom->material_id,
-            'material'          => $bom->material->nama,
-            'kebutuhan'         => $bom->kebutuhan,
-            'satuan'            => $bom->material->satuan, // ambil dari Master Material
-            'waste'             => $bom->waste,
-            'qty_material'      => $hitung['qty_material'],
-            'waste_qty'         => $hitung['waste_qty'],
-            'total_kebutuhan'   => $hitung['total_kebutuhan'],
-        ];
+            if ($material->isi_kemasan > 0) {
+                $jumlahKemasan =
+                    $totalKebutuhan / $material->isi_kemasan;
+            }
+
+
+            $results[] = [
+
+                'material_id' => $material->id,
+
+                'material' => $material->nama,
+
+                'kebutuhan_per_pcs' => $bom->kebutuhan,
+
+                'qty_permintaan' => $qtyPermintaan,
+
+                'total_kebutuhan' => $totalKebutuhan,
+
+                'isi_kemasan' => $material->isi_kemasan,
+
+                'jumlah_kemasan' => $jumlahKemasan,
+
+                'satuan' => $bom->satuan,
+
+                'waste' => $bom->waste,
+
+            ];
+        }
+
+
+        return $results;
     }
-
-    return response()->json($hasil);
 }
